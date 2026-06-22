@@ -1,0 +1,200 @@
+# Grafana documentation
+
+> Grafana Labs builds open and composable observability software, including Grafana, Grafana Cloud, Loki, Mimir, Tempo, Pyroscope, Alloy, Beyla, Faro, and k6.
+
+This file is the exhaustive documentation index for AI agents and other automated consumers.
+
+Use this file when you want a broad inventory of Grafana Labs technical documentation in one place. For a shorter curated entrypoint, use [llms.txt](/llms.txt).
+
+All links below point to machine-readable Markdown pages on `https://grafana.com`.
+
+All Grafana documentation pages support a machine-readable Markdown form:
+- Append `.md` to the canonical docs URL.
+- Or request the canonical docs URL with `Accept: text/markdown`.
+
+## Documentation home
+
+- [Technical documentation](https://grafana.com/docs.md): Grafana Labs technical documentation landing page.
+
+
+## Copyright notice
+- [Copyright notice](https://grafana.com/docs/copyright-notice.md): Technical documentation for Grafana Labs products and services.
+
+## Grafana Agent Documentation
+- [Grafana Agent Documentation](https://grafana.com/docs/agent/latest.md): Grafana Agent is a telemetry collector for sending metrics, logs, and trace data to the opinionated Grafana observability stack. It works best with:
+- [Flow mode](https://grafana.com/docs/agent/latest/flow.md): Grafana Agent Flow is a component-based revision of Grafana Agent with a focus on ease-of-use, debuggability, and adaptability
+- [Concepts](https://grafana.com/docs/agent/latest/flow/concepts.md): Learn about the Grafana Agent Flow concepts
+- [Clustering](https://grafana.com/docs/agent/latest/flow/concepts/clustering.md): Learn about Grafana Agent clustering concepts
+- [Component controller](https://grafana.com/docs/agent/latest/flow/concepts/component_controller.md): Learn about the component controller
+- [Components](https://grafana.com/docs/agent/latest/flow/concepts/components.md): Learn about components
+- [Configuration language](https://grafana.com/docs/agent/latest/flow/concepts/config-language.md): Learn about the configuration language
+- [Components configuration language](https://grafana.com/docs/agent/latest/flow/concepts/config-language/components.md): Learn about the components configuration language
+- [Expressions](https://grafana.com/docs/agent/latest/flow/concepts/config-language/expressions.md): Learn about expressions
+- [Function calls](https://grafana.com/docs/agent/latest/flow/concepts/config-language/expressions/function_calls.md): Learn about function calls
+- [Operators](https://grafana.com/docs/agent/latest/flow/concepts/config-language/expressions/operators.md): Learn about operators
+- [Referencing component exports](https://grafana.com/docs/agent/latest/flow/concepts/config-language/expressions/referencing_exports.md): Learn about referencing component exports
+- [Types and values](https://grafana.com/docs/agent/latest/flow/concepts/config-language/expressions/types_and_values.md): Learn about the River types and values
+- [Files](https://grafana.com/docs/agent/latest/flow/concepts/config-language/files.md): Learn about River files
+- [Syntax](https://grafana.com/docs/agent/latest/flow/concepts/config-language/syntax.md): Learn about the River syntax
+- [Custom components](https://grafana.com/docs/agent/latest/flow/concepts/custom_components.md): Learn about custom components
+- [Modules](https://grafana.com/docs/agent/latest/flow/concepts/modules.md): Learn about modules
+- [Get started with Grafana Agent Flow](https://grafana.com/docs/agent/latest/flow/get-started.md): Learn how to install and use Grafana Agent Flow
+- [Grafana Agent Flow deployment topologies](https://grafana.com/docs/agent/latest/flow/get-started/deploy-agent.md): Learn about possible deployment topologies for Grafana Agent Flow
+- [Install Grafana Agent Flow](https://grafana.com/docs/agent/latest/flow/get-started/install.md): Learn how to install Grafana Agent Flow
+- [Deploy Grafana Agent Flow on Kubernetes](https://grafana.com/docs/agent/latest/flow/get-started/install/kubernetes.md): Learn how to deploy Grafana Agent Flow on Kubernetes
+- [Install Grafana Agent Flow as a standalone binary](https://grafana.com/docs/agent/latest/flow/get-started/install/binary.md): Learn how to install Grafana Agent Flow as a standalone binary
+- [Install Grafana Agent Flow on Linux](https://grafana.com/docs/agent/latest/flow/get-started/install/linux.md): Learn how to install Grafana Agent Flow on Linux
+- [Install Grafana Agent Flow on macOS](https://grafana.com/docs/agent/latest/flow/get-started/install/macos.md): Learn how to install Grafana AgentFlow on macOS
+- [Install Grafana Agent Flow on Windows](https://grafana.com/docs/agent/latest/flow/get-started/install/windows.md): Learn how to install Grafana Agent Flow on Windows
+- [Install Grafana Agent Flow with Ansible](https://grafana.com/docs/agent/latest/flow/get-started/install/ansible.md): Learn how to install Grafana Agent Flow with Ansible
+- [Install Grafana Agent Flow with Chef](https://grafana.com/docs/agent/latest/flow/get-started/install/chef.md): Learn how to install Grafana Agent Flow with Chef
+- [Install Grafana Agent Flow with Puppet](https://grafana.com/docs/agent/latest/flow/get-started/install/puppet.md): Learn how to install Grafana Agent Flow with Puppet
+- [Run Grafana Agent Flow in a Docker container](https://grafana.com/docs/agent/latest/flow/get-started/install/docker.md): Learn how to install Grafana Agent Flow on Docker
+- [Run Grafana Agent Flow](https://grafana.com/docs/agent/latest/flow/get-started/run.md): Learn how to run Grafana Agent Flow
+- [Run Grafana Agent Flow as a standalone binary](https://grafana.com/docs/agent/latest/flow/get-started/run/binary.md): Learn how to run Grafana Agent Flow as a standalone binary
+- [Run Grafana Agent Flow on Linux](https://grafana.com/docs/agent/latest/flow/get-started/run/linux.md): Learn how to run Grafana Agent Flow on Linux
+- [Run Grafana Agent Flow on macOS](https://grafana.com/docs/agent/latest/flow/get-started/run/macos.md): Learn how to run Grafana Agent Flow on macOS
+- [Run Grafana Agent Flow on Windows](https://grafana.com/docs/agent/latest/flow/get-started/run/windows.md): Learn how to run Grafana Agent Flow on Windows
+- [Grafana Agent Flow Reference](https://grafana.com/docs/agent/latest/flow/reference.md): The reference-level documentaiton for Grafana Agent
+- [Compatible components](https://grafana.com/docs/agent/latest/flow/reference/compatibility.md): Learn about which components are compatible with each other in Grafana Agent Flow
+- [Components reference](https://grafana.com/docs/agent/latest/flow/reference/components.md): Learn about the components in Grafana Agent Flow
+- [discovery.azure](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.azure.md): Learn about discovery.azure
+- [discovery.consul](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.consul.md): Learn about discovery.consul
+- [discovery.consulagent](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.consulagent.md): Learn about discovery.consulagent
+- [discovery.digitalocean](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.digitalocean.md): Learn about discovery.digitalocean
+- [discovery.dns](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.dns.md): Learn about discovery.dns
+- [discovery.docker](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.docker.md): Learn about discovery.docker
+- [discovery.dockerswarm](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.dockerswarm.md): Learn about discovery.dockerswarm
+- [discovery.ec2](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.ec2.md): Learn about discovery.ec2
+- [discovery.eureka](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.eureka.md): Learn about discovery.eureka
+- [discovery.file](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.file.md): Learn about discovery.file
+- [discovery.gce](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.gce.md): Learn about discovery.gce
+- [discovery.hetzner](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.hetzner.md): Learn about discovery.hetzner
+- [discovery.http](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.http.md): Learn about discovery.http
+- [discovery.ionos](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.ionos.md): Learn about discovery.ionos
+- [discovery.kubelet](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubelet.md): Learn about discovery.kubelet
+- [discovery.kubernetes](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubernetes.md): Learn about discovery.kubernetes
+- [discovery.kuma](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kuma.md): Learn about discovery.kuma
+- [discovery.lightsail](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.lightsail.md): Learn about discovery.lightsail
+- [discovery.linode](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.linode.md): Learn about discovery.linode
+- [discovery.marathon](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.marathon.md): Learn about discovery.marathon
+- [discovery.nerve](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.nerve.md): Learn about discovery.nerve
+- [discovery.nomad](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.nomad.md): Learn about discovery.nomad
+- [discovery.openstack](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.openstack.md): Learn about discovery.openstack
+- [discovery.ovhcloud](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.ovhcloud.md): Learn about discovery.ovhcloud
+- [discovery.process](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.process.md): Learn about discovery.process
+- [discovery.puppetdb](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.puppetdb.md): Learn about discovery.puppetdb
+- [discovery.relabel](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.relabel.md): Learn about discovery.relabel
+- [discovery.scaleway](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.scaleway.md): Learn about discovery.scaleway
+- [discovery.serverset](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.serverset.md): Learn about discovery.serverset
+- [discovery.triton](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.triton.md): Learn about discovery.triton
+- [discovery.uyuni](https://grafana.com/docs/agent/latest/flow/reference/components/discovery.uyuni.md): Learn about discovery.uyuni
+- [faro.receiver](https://grafana.com/docs/agent/latest/flow/reference/components/faro.receiver.md): Learn about the faro.receiver
+- [local.file](https://grafana.com/docs/agent/latest/flow/reference/components/local.file.md): Learn about local.file
+- [local.file_match](https://grafana.com/docs/agent/latest/flow/reference/components/local.file_match.md): Learn about local.file_match
+- [loki.echo](https://grafana.com/docs/agent/latest/flow/reference/components/loki.echo.md): Learn about loki.echo
+- [loki.process](https://grafana.com/docs/agent/latest/flow/reference/components/loki.process.md): Learn about loki.process
+- [loki.relabel](https://grafana.com/docs/agent/latest/flow/reference/components/loki.relabel.md): Learn about loki.relabel
+- [loki.rules.kubernetes](https://grafana.com/docs/agent/latest/flow/reference/components/loki.rules.kubernetes.md)
+- [loki.source.api](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.api.md): Learn about loki.source.api
+- [loki.source.awsfirehose](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.awsfirehose.md): Learn about loki.source.awsfirehose
+- [loki.source.azure_event_hubs](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.azure_event_hubs.md): Learn about loki.source.azure_event_hubs
+- [loki.source.cloudflare](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.cloudflare.md): Learn about loki.source.cloudflare
+- [loki.source.docker](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.docker.md): Learn about loki.source.docker
+- [loki.source.file](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.file.md): Learn about loki.source.file
+- [loki.source.gcplog](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.gcplog.md): Learn about loki.source.gcplog
+- [loki.source.gelf](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.gelf.md): Learn about loki.source.gelf
+- [loki.source.heroku](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.heroku.md): Learn about loki.source.heroku
+- [loki.source.journal](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.journal.md): Learn about loki.source.journal
+- [loki.source.kafka](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kafka.md): Learn about loki.source.kafka
+- [loki.source.kubernetes](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes.md): Learn about loki.source.kubernetes
+- [loki.source.kubernetes_events](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes_events.md): Learn about loki.source.kubernetes_events
+- [loki.source.podlogs](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.podlogs.md): Learn about loki.source.podlogs
+- [loki.source.syslog](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.syslog.md): Learn about loki.source.syslog
+- [loki.source.windowsevent](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.windowsevent.md): Learn about loki.windowsevent
+- [loki.write](https://grafana.com/docs/agent/latest/flow/reference/components/loki.write.md): Learn about loki.write
+- [mimir.rules.kubernetes](https://grafana.com/docs/agent/latest/flow/reference/components/mimir.rules.kubernetes.md): Learn about mimir.rules.kubernetes
+- [module.file](https://grafana.com/docs/agent/latest/flow/reference/components/module.file.md): Learn about module.file
+- [module.git](https://grafana.com/docs/agent/latest/flow/reference/components/module.git.md): Learn about module.git
+- [module.http](https://grafana.com/docs/agent/latest/flow/reference/components/module.http.md): Learn about module.http
+- [module.string](https://grafana.com/docs/agent/latest/flow/reference/components/module.string.md): Learn about module.string
+- [otelcol.auth.basic](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.basic.md): Learn about otelcol.auth.basic
+- [otelcol.auth.bearer](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.bearer.md): Learn about otelcol.auth.bearer
+- [otelcol.auth.headers](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.headers.md): Learn about otelcol.auth.headers
+- [otelcol.auth.oauth2](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.oauth2.md): Learn about otelcol.auth.oauth2
+- [otelcol.auth.sigv4](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.sigv4.md): Learn about otelcol.auth.sigv4
+- [otelcol.connector.host_info](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.host_info.md): Learn about otelcol.connector.host_info
+- [otelcol.connector.servicegraph](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.servicegraph.md): Learn about otelcol.connector.servicegraph
+- [otelcol.connector.spanlogs](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.spanlogs.md): Learn about otelcol.connector.spanlogs
+- [otelcol.connector.spanmetrics](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.spanmetrics.md): Learn about otelcol.connector.spanmetrics
+- [otelcol.exporter.debug](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.debug.md): Learn about otelcol.exporter.debug
+- [otelcol.exporter.loadbalancing](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.loadbalancing.md): Learn about otelcol.exporter.loadbalancing
+- [otelcol.exporter.logging](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.logging.md): Learn about otelcol.exporter.logging
+- [otelcol.exporter.loki](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.loki.md): Learn about otelcol.exporter.loki
+- [otelcol.exporter.otlp](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.otlp.md): Learn about otelcol.exporter.otlp
+- [otelcol.exporter.otlphttp](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.otlphttp.md): Learn about otelcol.exporter.otlphttp
+- [otelcol.exporter.prometheus](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.prometheus.md): Learn about otelcol.exporter.prometheus
+- [otelcol.extension.jaeger_remote_sampling](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.extension.jaeger_remote_sampling.md): Learn about otelcol.extension.jaeger_remote_sampling
+- [otelcol.processor.attributes](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.attributes.md): Learn about otelcol.processor.attributes
+- [otelcol.processor.batch](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.batch.md): Learn about otelcol.processor.batch
+- [otelcol.processor.discovery](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.discovery.md): Learn about otelcol.processor.discovery
+- [otelcol.processor.filter](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.filter.md): Learn about otelcol.processor.filter
+- [otelcol.processor.k8sattributes](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.k8sattributes.md): Learn about otelcol.processor.k8sattributes
+- [otelcol.processor.memory_limiter](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.memory_limiter.md): Learn about otelcol.processor.memory_limiter
+- [otelcol.processor.probabilistic_sampler](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.probabilistic_sampler.md): Learn about telcol.processor.probabilistic_sampler
+- [otelcol.processor.resourcedetection](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.resourcedetection.md): Learn about otelcol.processor.resourcedetection
+- [otelcol.processor.span](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.span.md): Learn about otelcol.processor.span
+- [otelcol.processor.tail_sampling](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.tail_sampling.md): Learn about otelcol.processor.tail_sampling
+- [otelcol.processor.transform](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.transform.md): Learn about otelcol.processor.transform
+- [otelcol.receiver.jaeger](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.jaeger.md): Learn about otelcol.receiver.jaeger
+- [otelcol.receiver.kafka](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.kafka.md): Learn about otelcol.receiver.kafka
+- [otelcol.receiver.loki](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.loki.md): Learn about otelcol.receiver.loki
+- [otelcol.receiver.opencensus](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.opencensus.md): Learn about otelcol.receiver.opencensus
+- [otelcol.receiver.otlp](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.otlp.md): Learn about otelcol.receiver.otlp
+- [otelcol.receiver.prometheus](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.prometheus.md): Learn about otelcol.receiver.prometheus
+- [otelcol.receiver.vcenter](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.vcenter.md): Learn about otelcol.receiver.vcenter
+- [otelcol.receiver.zipkin](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.zipkin.md): Learn about otelcol.receiver.zipkin
+- [prometheus.exporter.apache](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.apache.md): Learn about prometheus.exporter.apache
+- [prometheus.exporter.azure](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.azure.md): Learn about prometheus.exporter.azure
+- [prometheus.exporter.blackbox](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.blackbox.md): Learn about prometheus.exporter.blackbox
+- [prometheus.exporter.cadvisor](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.cadvisor.md): Learn about the prometheus.exporter.cadvisor
+- [prometheus.exporter.cloudwatch](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.cloudwatch.md): Learn about prometheus.exporter.cloudwatch
+- [prometheus.exporter.consul](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.consul.md): Learn about prometheus.exporter.consul
+- [prometheus.exporter.dnsmasq](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.dnsmasq.md): Learn about prometheus.exporter.dnsmasq
+- [prometheus.exporter.elasticsearch](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.elasticsearch.md): Learn about prometheus.exporter.elasticsearch
+- [prometheus.exporter.gcp](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.gcp.md): Learn about prometheus.exporter.gcp
+- [prometheus.exporter.github](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.github.md): Learn about prometheus.exporter.github
+- [prometheus.exporter.kafka](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.kafka.md): Learn about prometheus.exporter.kafka
+- [prometheus.exporter.memcached](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.memcached.md): Learn about prometheus.exporter.memcached
+- [prometheus.exporter.mongodb](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.mongodb.md): Learn about prometheus.exporter.mongodb
+- [prometheus.exporter.mssql](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.mssql.md): Learn about prometheus.exporter.mssql
+- [prometheus.exporter.mysql](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.mysql.md): Learn about prometheus.exporter.mysql
+- [prometheus.exporter.oracledb](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.oracledb.md): Learn about prometheus.exporter.oracledb
+- [prometheus.exporter.postgres](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.postgres.md): Learn about prometheus.exporter.postgres
+- [prometheus.exporter.process](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.process.md): Learn about prometheus.exporter.process
+- [prometheus.exporter.redis](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.redis.md): Learn about prometheus.exporter.redis
+- [prometheus.exporter.self](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.self.md): Learn about prometheus.exporter.self
+- [prometheus.exporter.snmp](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.snmp.md): Learn about prometheus.exporter.snmp
+- [prometheus.exporter.snowflake](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.snowflake.md): Learn about prometheus.exporter.snowflake
+- [prometheus.exporter.squid](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.squid.md): Learn about prometheus.exporter.squid
+- [prometheus.exporter.statsd](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.statsd.md): Learn about prometheus.exporter.statsd
+- [prometheus.exporter.unix](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.unix.md): Learn about prometheus.exporter.unix
+- [prometheus.exporter.vsphere](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.vsphere.md): Learn about prometheus.exporter.vsphere
+- [prometheus.exporter.windows](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.windows.md): Learn about prometheus.exporter.windows
+- [prometheus.operator.podmonitors](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.podmonitors.md): Learn about prometheus.operator.podmonitors
+- [prometheus.operator.probes](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.probes.md): Learn about prometheus.operator.probes
+- [prometheus.operator.servicemonitors](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.servicemonitors.md): Learn about prometheus.operator.servicemonitors
+- [prometheus.receive_http](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.receive_http.md): Learn about prometheus.receive_http
+- [prometheus.relabel](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.relabel.md): Learn about prometheus.relabel
+- [prometheus.remote_write](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write.md): Learn about prometheus.remote_write
+- [prometheus.scrape](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.scrape.md): Learn about prometheus.scrape
+- [pyroscope.ebpf](https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.ebpf.md): Learn about pyroscope.ebpf
+- [pyroscope.java](https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.java.md): Learn about pyroscope.java
+- [pyroscope.scrape](https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.scrape.md): Learn about pyroscope.scrape
+- [pyroscope.write](https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.write.md): Learn about pyroscope.write
+- [remote.http](https://grafana.com/docs/agent/latest/flow/reference/components/remote.http.md): Learn about remote.http
+- [remote.kubernetes.configmap](https://grafana.com/docs/agent/latest/flow/reference/components/remote.kubernetes.configmap.md): Learn about remote.kubernetes.configmap
+- [remote.kubernetes.secret](https://grafana.com/docs/agent/latest/flow/reference/components/remote.kubernetes.secret.md): Learn about remote.kubernetes.secret
+- [remote.s3](https://grafana.com/docs/agent/latest/flow/reference/components/remote.s3.md): Learn about remote.s3
+- [remote.vault](https://grafana.com/docs/agent/latest/flow/reference/components/remote.vault.md): Learn about remote.vault
+- [Configuration blocks](https://grafana.com/docs/agent/latest/flow/reference/config-blocks.md): Learn about configuration blocks

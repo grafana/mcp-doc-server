@@ -1,0 +1,7 @@
+bin/
+
+# Editor, tooling, and local agent state — not part of the project source.
+.cursor/
+.specstory/
+.vscode/
+.cursorindexingignore

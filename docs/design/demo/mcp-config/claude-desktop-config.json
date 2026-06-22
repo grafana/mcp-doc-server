@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "grafana-docs": {
+      "command": "/path/to/mcp-doc-server/bin/mcp-doc-server",
+      "args": []
+    }
+  }
+}

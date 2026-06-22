@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "grafana-docs": {
+      "command": "${workspaceFolder}/bin/mcp-doc-server",
+      "args": [],
+      "env": {}
+    }
+  }
+}
