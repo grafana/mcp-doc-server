@@ -37,7 +37,7 @@ annotate instead). See `AGENTS.md` for the SDD convention and `NOTES.md` for dec
   must NOT live under `internal/` (Go forbids cross-module `internal` imports) and must
   not depend on the MCP SDK or cobra.
 - **Opt-in adapters wrap the core** for our standalone server:
-  - an **MCP adapter** (`pkg/grafanadocs/mcp`) on `github.com/mark3labs/mcp-go` v0.46.0;
+  - an **MCP adapter** (`pkg/grafanadocs/mcp`) on `github.com/mark3labs/mcp-go` v0.55.0;
   - a **cobra adapter** (`pkg/grafanadocs/cli`) for standalone CLI use.
 - **Consumer integration model (`NOTES.md` 11):** `grafana/mcp-grafana` and `grafana/gcx`
   import the **core only** and write their own idiomatic wrappers — mcp-grafana writes a
@@ -68,13 +68,33 @@ Exported functions — plain Go, zero framework deps (stdlib + `net/http`):
 - `LoadIndexFromReader(r io.Reader) (*Index, error)`
 - `Search(idx *Index, query string, opts SearchOpts) []Entry`
 - `(*Index).Products() []Product`
+- `(*Index).EntryCount() int`
 - `FetchDoc(ctx context.Context, url string) (*Doc, error)`
 - `Cleanup(raw []byte) []byte`
 - `Outline(doc *Doc) []Heading`
 - `Excerpt(doc *Doc, opts ExcerptOpts) ExcerptResult`
 
-### Entry data model
-- `Entry{Title string, URL string, Description string, Product string}`
+### Core data types
+Plain Go structs with no `json` tags — the core is serialization-agnostic by design.
+Consumers that need JSON output (gcx, MCP adapter) write thin wrapper types with their
+own tags. This keeps the core free of framework opinions.
+
+- `Entry{Title string, URL string, Description string, Product string}` — a single
+  documentation page from the index.
+- `Product{Name string, Count int}` — a documentation group with its entry count.
+- `Index{Entries []Entry, products []Product, idf map[string]float64}` — the parsed
+  documentation catalog; safe for concurrent read access after construction. `products`
+  and `idf` are unexported; accessed via `Products()` and used internally by `Search`.
+- `Doc{URL string, Content []byte, Lines []string}` — a fetched and cleaned documentation
+  page. `Lines` is computed lazily via `EnsureLines()`.
+- `Heading{Level int, Text string, Line int}` — a markdown heading with its 1-indexed
+  line position.
+- `SearchOpts{Product string, Limit int}` — controls search behavior. `Product` filters
+  to a specific product (empty = all); `Limit` caps results (0 = default 5).
+- `ExcerptOpts{Section string, Offset int, Limit int}` — controls bounded retrieval.
+  `Section` extracts by heading text; when empty, `Offset`/`Limit` do line-based paging.
+- `ExcerptResult{Content string, Start int, End int, Total int}` — the excerpted content
+  with 1-indexed position metadata.
 
 ### Config & runtime
 - **Go version:** 1.24+ (floor); mcp-grafana currently uses 1.26.3.
@@ -128,8 +148,26 @@ Exported functions — plain Go, zero framework deps (stdlib + `net/http`):
 ## Open questions (to decide as we go)
 
 - **Caching:** what is cached and for how long (index TTL, fetched-page TTL).
-- **Index lifecycle in consumers:** singleton? per-request? background refresh?
-- **gcx integration form:** subcommand vs. agent skill vs. both.
+
+### Closed questions
+
+- **gcx integration form** *(closed 2026-06-23, `NOTES.md` 18):* subcommand group
+  (`gcx docs search/get/outline/products`). gcx imports the core only and writes its own
+  CLI layer with `output.Options` and agent annotations, exactly as predicted by `NOTES.md`
+  entry 11. Not an agent skill.
+- **Index lifecycle in consumers** *(closed 2026-06-23, `NOTES.md` 18):* lazy `sync.Once`
+  on first subcommand that needs the index (`search`, `products`). Commands that only need
+  `FetchDoc` (`get`, `outline`) never trigger the load. The standalone CLI (`cmd/docs`)
+  loads on demand at startup. Background refresh is deferred to the caching question.
+- **mcp-grafana integration form** *(closed 2026-06-23, `NOTES.md` 19):* `tools/docs.go`
+  registering four tools (`search_docs`, `get_doc`, `get_doc_outline`, `list_products`) via
+  `mcpgrafana.MustTool` + `AddDocsTools` + a `toolEntries()` row, matching all 30+ existing
+  tool categories. Imports the core only (`pkg/grafanadocs`); the MCP adapter is not used.
+  Index loaded lazily via `sync.Once` on first `search_docs`/`list_products` call (`get_doc`
+  and `get_doc_outline` only call `FetchDoc`, so they never trigger the load), with a
+  `DOCS_INDEX_URL` env var override mirroring the standalone server. Consumer lint finding:
+  mcp-grafana's `tools/` package enforces `golangci-lint` `sloglint` with `no-global: "all"`,
+  so tool handlers must not use the default `slog` logger.
 
 ### CLI adapter surface (`pkg/grafanadocs/cli`)
 A mountable cobra `docs` command group, exported as `Command(idx *grafanadocs.Index)

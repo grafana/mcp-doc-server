@@ -101,6 +101,12 @@ same logic without one inheriting the other's dependencies.
 - The MCP adapter's mcp-go version should track mcp-grafana to avoid conflicts on import.
 - Open: eventual module path/ownership (ideally `github.com/grafana/...`) and the gcx
   integration form (subcommand vs. skill vs. both). Tracked in `SPECS.md` Open questions.
+*Addendum (2026-06-23):* The version-tracking concern above is moot. Entry 11 superseded
+the "consumers import the MCP adapter" model — both `grafana/mcp-grafana` and `grafana/gcx`
+import the **core only** (`pkg/grafanadocs`), which has no mcp-go dependency. The adapter's
+mcp-go version (v0.55.0) is therefore free to diverge from mcp-grafana's (v0.46.0) without
+any import conflict, as confirmed by the working mcp-grafana integration (entry 19). The
+adapter's version only matters to the standalone `hack-doc-server` binary.
 
 ## 11. Consumer integration model: consumers write their own wrappers
 *Added: 2026-06-22*
@@ -215,3 +221,77 @@ gcx; aligning pflag avoids a needless version bump surprise.
 **Consequence:** Updated `cmdio.Options` → `output.Options` references in SPECS.md,
 README.md, `research/gcx-integration-patterns.md`, and the `cli/command.go` doc comment.
 Our code does not import gcx, so there were no compile-level compatibility changes.
+
+## 18. gcx integration validated: core-only import, own CLI layer
+*Added: 2026-06-23*
+**Decision:** Built a working `gcx docs` prototype (`feat/docs-command` branch in
+`grafana/gcx`) that imports only `pkg/grafanadocs` and writes its own CLI layer, validating
+the consumer integration model from entry 11. Key findings:
+- **Core types are serialization-agnostic by design.** `Entry`, `Product`, `Heading`,
+  `ExcerptResult`, and `SearchOpts` carry no `json` tags. gcx creates thin wrapper types
+  (`searchEntry`, `getResult`, `outlineHeading`, etc.) with `snake_case` `json` tags to
+  support `--json` field selection and structured output. This is intentional — the core
+  stays free of serialization opinions, and each consumer applies its own conventions.
+- **`Validate()` takes no parameters.** gcx's canonical opts pattern is `Validate() error`
+  with positional args stored on the opts struct in `RunE` before validation. The initial
+  gcx prototype had `Validate(query string)` / `Validate(rawURL string)` which diverged;
+  this was caught and fixed during review.
+- **Agent-mode diagnostics use `output.EmitHint`, not raw `fmt.Fprintln`.** gcx's
+  dual-purpose output contract (CONSTITUTION FR-104) requires stderr diagnostics to be
+  typed JSONL in agent mode. The empty-search guidance (invariant I13) must go through
+  `cmdio.EmitHint` in gcx, not raw stderr writes. Our cobra adapter's plain-text stderr
+  approach is fine for the standalone CLI but would violate gcx's contract if copied
+  verbatim.
+- **Index lifecycle: lazy `sync.Once`.** gcx's prototype loads the index on first
+  subcommand that needs it (`search`, `products`). `get` and `outline` bypass the index
+  entirely — they only call `FetchDoc`. This avoids a ~1 MB network fetch on unrelated
+  commands or `--help`.
+- **Agent annotations added.** All four leaf commands received `token_cost` and `llm_hint`
+  annotations, passing gcx's `TestConsistency_AllLeafCommandsHaveTokenCost` suite.
+- **`--jq` and `--json` inherited for free.** Because gcx wires these via `BindFlags`,
+  the docs commands got field selection and jq transformation with zero extra code.
+**Rationale:** A real integration attempt surfaces friction points that spec review alone
+cannot. The findings above close two open questions in SPECS.md and refine the guidance
+for future consumers.
+**Consequence:** SPECS.md open questions for "gcx integration form" and "Index lifecycle in
+consumers" moved to Closed. Core data types documented in SPECS.md to make the
+serialization-agnostic design explicit. No changes to hack-doc-server code — all fixes
+were in the gcx branch.
+
+## 19. mcp-grafana integration validated: core-only import, MustTool wrappers
+*Added: 2026-06-23*
+**Decision:** Built a working docs integration in `grafana/mcp-grafana` (`tools/docs.go`)
+that imports only `pkg/grafanadocs` and registers four tools — `search_docs`, `get_doc`,
+`get_doc_outline`, `list_products` — using mcp-grafana's own `mcpgrafana.MustTool`,
+`AddDocsTools(*server.MCPServer)`, and a `toolEntries()` row, exactly matching the pattern
+shared by all 30+ existing tool categories. This validates entry 11's consumer integration
+model against the second primary consumer. Key findings:
+- **Core-only import; adapter not used.** mcp-grafana wrote its own param/result types with
+  `json` + `jsonschema` struct tags (`SearchDocsParams`, `GetDocResult`, etc.) wrapping the
+  core's plain Go types. The MCP adapter (`pkg/grafanadocs/mcp`) was never imported, as
+  predicted. The core's zero-framework-dependency design meant only stdlib-shaped types
+  crossed the boundary.
+- **mcp-go version mismatch is a non-issue.** mcp-grafana uses mcp-go v0.46.0; our adapter
+  uses v0.55.0. Because the consumer imports the core (no mcp-go dep) and not the adapter,
+  there is no conflict — confirming the addendum on entry 10.
+- **Consumer forbids the default logger.** mcp-grafana's `tools/` package enforces
+  `golangci-lint`'s `sloglint` with `no-global: "all"` (only `cmd/` is excluded). The first
+  implementation logged index load/errors via `slog.Info()`/`slog.Error()` and failed lint;
+  the fix was to remove logging from the tool layer and let errors propagate. Future consumer
+  guidance: keep tool handlers free of package-global logging.
+- **Index lifecycle: lazy `sync.Once`.** The index loads on first `search_docs`/`list_products`
+  call. `get_doc`/`get_doc_outline` only call `FetchDoc`, so they never trigger the load —
+  same split as the gcx prototype (entry 18). `DOCS_INDEX_URL` env var overrides the default
+  index URL, mirroring the standalone server.
+- **`MustTool` auto-generates JSON Schema.** The `jsonschema` struct tags on the consumer's
+  param types drive tool schema generation; commas inside tag descriptions must be escaped
+  (`\\,`) per mcp-grafana's custom jsonschema linter.
+- **go.mod uses a local `replace`.** For now the dependency is wired via
+  `replace github.com/grafana/hack-doc-server => <local path>` pending a published module.
+**Rationale:** A second real integration confirms the core API is the durable contract and
+that consumers can adopt their own framework conventions without the core imposing any. The
+sloglint finding is a concrete, transferable constraint for anyone writing mcp-grafana tools.
+**Consequence:** SPECS.md gains a "mcp-grafana integration form" closed question; entry 10
+gets an addendum about version independence. No changes to hack-doc-server code — all work
+was in mcp-grafana (`tools/docs.go`, `tools/docs_unit_test.go`, `cmd/mcp-grafana/main.go`,
+`go.mod`).
