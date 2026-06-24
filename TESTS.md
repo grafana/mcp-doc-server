@@ -222,11 +222,13 @@ stripped before appending `.md` (I16).
 **Action:** Call `handleGetDoc` with `{"url": "...", "offset": -5}`.
 **Assertion:** Returns an error result mentioning "negative" (I17).
 
-## Scenario: safeInt rejects non-finite values
+## Scenario: safeInt rejects non-finite and out-of-range values
 **Setup:** Direct unit test of `safeInt`.
-**Action:** Call `safeInt` with positive, zero, negative, and decimal values.
-**Assertion:** Positive and zero return the integer value; negative returns an error.
-Decimal values are truncated (5.9 → 5).
+**Action:** Call `safeInt` with positive, zero, negative, decimal, `NaN`, `±Inf`, a value
+above the cap, the cap itself, and a huge finite value (`1e300`).
+**Assertion:** Positive, zero, and the cap return the integer value; negative, `NaN`, `Inf`,
+and values above `maxSafeInt` return an error. Decimal values are truncated (5.9 → 5). The
+huge finite value is rejected rather than wrapping to a negative int (I17).
 
 ## Scenario: CLI products listing
 **Setup:** `cli.Command(idx)` built from a parsed index.
@@ -312,9 +314,10 @@ URLs start with `https://grafana.com/`.
 
 ## Scenario: Rate limiter concurrent stress
 **Setup:** A `rateLimiter` with concurrency=3 and gap=10ms.
-**Action:** 20 goroutines each acquire/release 10 times.
-**Assertion:** All goroutines complete within 30s. No panics, no data races (under
-`-race`), no deadlocks.
+**Action:** 20 goroutines each acquire/release 10 times (200 acquires total).
+**Assertion:** All goroutines complete within 30s with no panics, data races (under
+`-race`), or deadlocks. Total elapsed time is ≥ (200−1)·gap, proving the gap is enforced
+across concurrent acquirers, not just sequential ones (I9).
 
 ## Scenario: Outline heading bounds invariant
 **Setup:** A cleaned document from the sample fixture.

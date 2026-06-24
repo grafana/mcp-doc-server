@@ -33,10 +33,10 @@ var overrideAllowlistCheck func(string) error
 var fetchLimiter = newRateLimiter(5, 200*time.Millisecond)
 
 type rateLimiter struct {
-	mu       sync.Mutex
-	lastCall time.Time
-	sem      chan struct{}
-	minGap   time.Duration
+	mu          sync.Mutex
+	nextAllowed time.Time
+	sem         chan struct{}
+	minGap      time.Duration
 }
 
 func newRateLimiter(maxConcurrent int, minGap time.Duration) *rateLimiter {
@@ -53,23 +53,25 @@ func (rl *rateLimiter) acquire(ctx context.Context) error {
 		return ctx.Err()
 	}
 
+	// Reserve a unique slot while holding the lock, then wait for it outside the
+	// lock. Reserving advances nextAllowed by minGap so concurrent acquirers each
+	// get a distinct, spaced slot rather than all reading the same lastCall.
 	rl.mu.Lock()
-	elapsed := time.Since(rl.lastCall)
-	if wait := rl.minGap - elapsed; wait > 0 {
-		rl.mu.Unlock()
+	slot := time.Now()
+	if rl.nextAllowed.After(slot) {
+		slot = rl.nextAllowed
+	}
+	rl.nextAllowed = slot.Add(rl.minGap)
+	rl.mu.Unlock()
+
+	if wait := time.Until(slot); wait > 0 {
 		select {
 		case <-time.After(wait):
 		case <-ctx.Done():
 			<-rl.sem
 			return ctx.Err()
 		}
-	} else {
-		rl.mu.Unlock()
 	}
-
-	rl.mu.Lock()
-	rl.lastCall = time.Now()
-	rl.mu.Unlock()
 	return nil
 }
 

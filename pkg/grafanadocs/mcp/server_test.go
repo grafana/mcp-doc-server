@@ -5,6 +5,7 @@ package mcp
 import (
 	"context"
 	"encoding/json"
+	"math"
 	"strings"
 	"testing"
 
@@ -214,6 +215,12 @@ func TestSafeInt(t *testing.T) {
 		{"truncates decimal", 5.9, 5, false},
 		{"negative", -1.0, 0, true},
 		{"large", 1000.0, 1000, false},
+		{"NaN", math.NaN(), 0, true},
+		{"+Inf", math.Inf(1), 0, true},
+		{"-Inf", math.Inf(-1), 0, true},
+		{"overflow does not wrap to negative", 1e300, 0, true},
+		{"above cap", float64(maxSafeInt) + 1, 0, true},
+		{"at cap", float64(maxSafeInt), maxSafeInt, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

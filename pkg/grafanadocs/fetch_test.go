@@ -144,11 +144,14 @@ func TestRateLimiter_ConcurrentStress(t *testing.T) {
 
 	const goroutines = 20
 	const iterations = 10
+	const total = goroutines * iterations
+	const gap = 10 * time.Millisecond
 
 	var wg sync.WaitGroup
 	wg.Add(goroutines)
-	errs := make(chan error, goroutines*iterations)
+	errs := make(chan error, total)
 
+	start := time.Now()
 	for i := 0; i < goroutines; i++ {
 		go func() {
 			defer wg.Done()
@@ -173,11 +176,20 @@ func TestRateLimiter_ConcurrentStress(t *testing.T) {
 	case <-time.After(30 * time.Second):
 		t.Fatal("stress test timed out — possible deadlock")
 	}
+	elapsed := time.Since(start)
 
 	close(errs)
 	for err := range errs {
 		t.Errorf("acquire error: %v", err)
 	}
+
+	// Spacing must hold under concurrency: N acquires spaced by gap take at
+	// least (N-1)*gap. Without per-slot reservation, all concurrent acquirers
+	// would proceed together and finish near-instantly.
+	minExpected := time.Duration(total-1) * gap
+	tolerance := 5 * time.Millisecond
+	require.GreaterOrEqual(t, elapsed, minExpected-tolerance,
+		"concurrent acquires must be spaced by minGap")
 }
 
 func FuzzEnsureMDSuffix(f *testing.F) {

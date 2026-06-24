@@ -134,8 +134,10 @@ own tags. This keeps the core free of framework opinions.
   edge is trimmed up front so detection is pass-stable. `Cleanup` is idempotent:
   `Cleanup(Cleanup(x)) == Cleanup(x)` for all inputs.
 - **I9 — Rate-limited outbound.** `FetchDoc` enforces a concurrency cap (5) and minimum
-  gap (200ms) between requests to prevent abuse of grafana.com. The gap is measured between
-  *acquires* (request starts), not releases, ensuring concurrent goroutines cannot bypass it.
+  gap (200ms) between requests to prevent abuse of grafana.com. Each `acquire` reserves a
+  unique slot under the lock (advancing a `nextAllowed` cursor by the gap) and waits for it
+  outside the lock, so N concurrent acquirers are spaced by the gap rather than all reading
+  the same timestamp and proceeding together.
 - **I10 — Body size caps.** Doc fetches are limited to 2 MiB; index fetches to 10 MiB.
   Prevents OOM from unexpected upstream responses.
 - **I11 — Index entry validation.** URLs parsed from the index must start with
@@ -158,9 +160,11 @@ own tags. This keeps the core free of framework opinions.
 - **I16 — URL-safe `.md` suffix.** The `.md` suffix logic operates on the parsed URL path,
   not the raw URL string. Fragments (`#section`), query parameters (`?v=1`), and trailing
   slashes are handled correctly — the suffix is appended to the path only.
-- **I17 — MCP numeric input validation.** MCP handlers reject `NaN`, `Inf`, and negative
-  values for numeric parameters (`limit`, `offset`) with a descriptive error before
-  passing them to the core. The `safeInt` helper converts `float64` → `int` safely.
+- **I17 — MCP numeric input validation.** MCP handlers reject `NaN`, `Inf`, negative, and
+  out-of-range values for numeric parameters (`limit`, `offset`) with a descriptive error
+  before passing them to the core. The `safeInt` helper converts `float64` → `int` only
+  within `[0, 2^31]`; values above the cap are rejected so an out-of-range conversion (which
+  is implementation-dependent in Go and can wrap to a negative int) cannot bypass validation.
 - **I18 — Product filter resolution precedence.** The `product` parameter on `search_docs`
   resolves to canonical product names by trying match levels in order and stopping at the
   first that yields any match: exact (case-insensitive) → prefix → substring. A precise name

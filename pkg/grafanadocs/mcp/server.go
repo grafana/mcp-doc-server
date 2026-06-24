@@ -237,13 +237,24 @@ func jsonResult(v any) (*mcp.CallToolResult, error) {
 	return mcp.NewToolResultText(string(data)), nil
 }
 
-// safeInt converts a JSON number to int, rejecting NaN, Inf, and negatives.
+// maxSafeInt bounds limit/offset arguments. It is well within int range on all
+// platforms, so the float64→int conversion below is always representable, and it
+// is far larger than any realistic paging request.
+const maxSafeInt = 1 << 31
+
+// safeInt converts a JSON number to int, rejecting NaN, Inf, negatives, and
+// values too large to convert safely. Without the upper bound, float64→int
+// conversion of an out-of-range value is implementation-dependent (e.g. yields a
+// negative number on amd64), silently bypassing the negativity check.
 func safeInt(v float64) (int, error) {
 	if math.IsNaN(v) || math.IsInf(v, 0) {
 		return 0, fmt.Errorf("must be a finite number")
 	}
 	if v < 0 {
 		return 0, fmt.Errorf("must not be negative")
+	}
+	if v > maxSafeInt {
+		return 0, fmt.Errorf("must not exceed %d", maxSafeInt)
 	}
 	return int(v), nil
 }

@@ -512,3 +512,23 @@ a product-name set before scoring; `strings.EqualFold` filtering removed. Test
 `TestSearch_ExactProductMatch` became `TestSearch_ProductResolution` covering exact, prefix,
 substring, and unknown cases. Downstream: gcx's `--product agent` test now passes via the
 substring fallback after it re-vendors; mcp-grafana (exact names already) is unaffected.
+
+## 29. PR #3 review fixes: rate-limiter spacing and safeInt overflow
+*Added: 2026-06-23*
+**Decision:** Address two Copilot review findings on PR #3.
+1. **Rate-limiter gap not enforced under concurrency.** With `maxConcurrent=5`, multiple
+   goroutines could pass the semaphore, all read the same `lastCall`, compute the same wait,
+   wake together, and proceed near-simultaneously — collapsing the 200ms gap. Replaced
+   `lastCall` with a `nextAllowed` cursor: `acquire` reserves `slot = max(now, nextAllowed)`
+   and advances `nextAllowed = slot + minGap` while holding the lock, then waits for `slot`
+   outside the lock. Each concurrent acquirer now gets a distinct, spaced slot.
+2. **`safeInt` overflow.** `int(v)` for a finite float64 beyond int range is
+   implementation-dependent in Go (yields a negative number on amd64), bypassing the
+   negativity check. Added an explicit upper bound (`maxSafeInt = 1<<31`); larger values are
+   rejected with a descriptive error.
+**Rationale:** Both are correctness gaps in code this PR was already hardening. The
+rate-limiter fix makes the documented I9 spacing invariant actually hold under concurrency;
+the safeInt fix closes a validation bypass in the MCP input sanitizer (I17).
+**Consequence:** I9 and I17 reworded. `TestRateLimiter_ConcurrentStress` strengthened to
+assert total elapsed ≥ (N−1)·gap (true spacing, not just no-deadlock). `TestSafeInt` extended
+with NaN/Inf/overflow/cap cases. No public API change; both consumers unaffected.
