@@ -53,8 +53,8 @@ func TestSearchCommand(t *testing.T) {
 			wantStdout: []string{"TITLE", "PRODUCT", "URL", "Clustering"},
 		},
 		{
-			name:       "product filter is case-insensitive substring",
-			args:       []string{"search", "clustering", "--product", "agent"},
+			name:       "product filter is case-insensitive exact match",
+			args:       []string{"search", "clustering", "--product", "grafana agent"},
 			wantStdout: []string{"Clustering"},
 		},
 		{
@@ -209,4 +209,40 @@ func TestCodecs(t *testing.T) {
 		require.Error(t, outlineTableCodec{}.Encode(&buf, "nope"))
 		require.Error(t, productsTableCodec{}.Encode(&buf, "nope"))
 	})
+}
+
+func TestNeedsIndex(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+		want bool
+	}{
+		{"search reads index", []string{"search", "clustering"}, true},
+		{"products reads index", []string{"products"}, true},
+		{"get does not", []string{"get", "https://grafana.com/docs/x"}, false},
+		{"outline does not", []string{"outline", "https://grafana.com/docs/x"}, false},
+		{"bare invocation", nil, false},
+		{"help flag", []string{"--help"}, false},
+		{"completion", []string{"completion", "bash"}, false},
+		{"unknown subcommand", []string{"frobnicate"}, false},
+		{"leading flag skipped", []string{"-v", "search"}, true},
+		{"leading flag before non-index cmd", []string{"-v", "get", "x"}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, NeedsIndex(tt.args))
+		})
+	}
+}
+
+// TestNeedsIndexInSyncWithCommands guards against drift: every command named in
+// indexReadingCommands must be a real subcommand of the docs group.
+func TestNeedsIndexInSyncWithCommands(t *testing.T) {
+	real := map[string]bool{}
+	for _, c := range Command(&grafanadocs.Index{}).Commands() {
+		real[c.Name()] = true
+	}
+	for name := range indexReadingCommands {
+		require.True(t, real[name], "indexReadingCommands lists %q, which is not a real subcommand", name)
+	}
 }

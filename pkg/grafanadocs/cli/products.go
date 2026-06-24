@@ -11,8 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// productsResult wraps the product list under a "products" key, mirroring the
-// MCP adapter.
+// productsResult mirrors the MCP adapter's JSON keys for cross-surface consistency.
 type productsResult struct {
 	Products []grafanadocs.Product `json:"products" yaml:"products"`
 }

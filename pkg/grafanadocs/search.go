@@ -29,9 +29,17 @@ func Search(idx *Index, query string, opts SearchOpts) []Entry {
 
 	queryLower := strings.ToLower(query)
 
+	var productFilter map[string]bool
+	if opts.Product != "" {
+		productFilter = resolveProductFilter(idx, opts.Product)
+		if len(productFilter) == 0 {
+			return nil // filter named no known product
+		}
+	}
+
 	var results []scored
 	for _, e := range idx.Entries {
-		if opts.Product != "" && !containsFold(e.Product, opts.Product) {
+		if productFilter != nil && !productFilter[e.Product] {
 			continue
 		}
 		s := score(e, tokens, queryLower, idx.idf)
@@ -51,6 +59,40 @@ func Search(idx *Index, query string, opts SearchOpts) []Entry {
 		out[i] = r.entry
 	}
 	return out
+}
+
+// resolveProductFilter maps a user-supplied product filter to the set of
+// canonical product names it selects. Matching is tried in precedence order and
+// stops at the first level that yields any match: exact (case-insensitive),
+// then prefix, then substring. A precise name therefore selects exactly one
+// product, while a loose term ("agent", "loki") still resolves to the products
+// that contain it. Returns nil when nothing matches.
+func resolveProductFilter(idx *Index, filter string) map[string]bool {
+	f := strings.ToLower(strings.TrimSpace(filter))
+	if f == "" {
+		return nil
+	}
+
+	pick := func(match func(name string) bool) map[string]bool {
+		var out map[string]bool
+		for _, p := range idx.products {
+			if match(strings.ToLower(p.Name)) {
+				if out == nil {
+					out = make(map[string]bool)
+				}
+				out[p.Name] = true
+			}
+		}
+		return out
+	}
+
+	if m := pick(func(n string) bool { return n == f }); m != nil {
+		return m
+	}
+	if m := pick(func(n string) bool { return strings.HasPrefix(n, f) }); m != nil {
+		return m
+	}
+	return pick(func(n string) bool { return strings.Contains(n, f) })
 }
 
 // score computes a relevance score using:
@@ -129,11 +171,6 @@ type scored struct {
 	score int
 }
 
-// containsFold reports whether s contains substr, case-insensitive.
-func containsFold(s, substr string) bool {
-	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
-}
-
 // sortScored sorts by score descending. Uses insertion sort — result sets are
 // small (thousands of entries, capped by limit).
 func sortScored(s []scored) {
@@ -145,10 +182,14 @@ func sortScored(s []scored) {
 }
 
 // buildIDF computes inverse document frequency for all words across entries.
-// Called once at index load time.
+// Called once at index load time. Returns an empty map for an empty corpus.
 func buildIDF(entries []Entry) map[string]float64 {
+	if len(entries) == 0 {
+		return make(map[string]float64)
+	}
+
 	docCount := float64(len(entries))
-	df := make(map[string]int) // document frequency per term
+	df := make(map[string]int)
 
 	for _, e := range entries {
 		seen := make(map[string]bool)

@@ -35,9 +35,7 @@ func (o *getOpts) Validate(rawURL string) error {
 	return nil
 }
 
-// getResult is the structured form of a fetched, excerpted page. Field tags
-// mirror the MCP adapter's keys so JSON/YAML output is consistent across both
-// surfaces.
+// getResult mirrors the MCP adapter's JSON keys for cross-surface consistency.
 type getResult struct {
 	Content       string `json:"content" yaml:"content"`
 	URL           string `json:"url" yaml:"url"`

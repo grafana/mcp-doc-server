@@ -29,7 +29,9 @@ annotate instead). See `AGENTS.md` for the SDD convention and `NOTES.md` for dec
   - Entry regex: `^- \[([^\]]+)\]\(([^)]+)\)(?::\s*(.*))?$`
   - Entries with non-`https://grafana.com/` URLs are silently dropped (I11).
   - "Documentation home" and "Copyright notice" sections are excluded (I12).
-- **Fetch:** the `.md` trick — appending `.md` to a docs URL returns `text/markdown`.
+- **Fetch:** the `.md` trick — appending `.md` to a docs URL path returns
+  `text/markdown`. The suffix is applied to the parsed path component (not raw string)
+  so fragments and query parameters are preserved (I16).
 
 ### Architecture: reusable core + thin adapters (`NOTES.md` 3, 10, 11)
 - A **public, dependency-light core package** (`pkg/grafanadocs`) holds the retrieval
@@ -86,7 +88,8 @@ own tags. This keeps the core free of framework opinions.
   documentation catalog; safe for concurrent read access after construction. `products`
   and `idf` are unexported; accessed via `Products()` and used internally by `Search`.
 - `Doc{URL string, Content []byte, Lines []string}` — a fetched and cleaned documentation
-  page. `Lines` is computed lazily via `EnsureLines()`.
+  page. `Lines` is computed lazily via `EnsureLines()` and automatically recomputed if
+  `Content` has changed since the last call.
 - `Heading{Level int, Text string, Line int}` — a markdown heading with its 1-indexed
   line position.
 - `SearchOpts{Product string, Limit int}` — controls search behavior. `Product` filters
@@ -103,6 +106,8 @@ own tags. This keeps the core free of framework opinions.
 - **Transport:** stdio in v1.
 - **License:** Apache 2.0 (matches mcp-grafana and gcx).
 - **HTTP timeouts:** 30s for doc fetches, 60s for index load.
+- **Scanner buffer:** Index parser uses a 1 MiB max line buffer (vs. `bufio`'s 64 KiB
+  default) to handle entries with long descriptions without silent truncation.
 
 ## Invariants (committed)
 
@@ -121,9 +126,18 @@ own tags. This keeps the core free of framework opinions.
   parameter is reserved but inert.
 - **I7 — Lean search.** `search_docs` defaults to a small result count and concise output.
 - **I8 — Cleanup preserves meaning.** Any markdown cleanup removes presentation/boilerplate
-  only; documented content is unchanged.
+  only; documented content is unchanged. Blank-line collapsing runs *before* code blocks are
+  restored, so intentional whitespace inside code blocks is preserved. Frontmatter, shortcode,
+  and HTML comment stripping run together in a convergence loop so that removing one cannot
+  reveal another (e.g. `{<!---->{<>}}` → `{{<>}}` → empty; or an HTML comment hiding a
+  frontmatter block). Input line endings are normalized (CRLF/CR → LF) and the leading/trailing
+  edge is trimmed up front so detection is pass-stable. `Cleanup` is idempotent:
+  `Cleanup(Cleanup(x)) == Cleanup(x)` for all inputs.
 - **I9 — Rate-limited outbound.** `FetchDoc` enforces a concurrency cap (5) and minimum
-  gap (200ms) between requests to prevent abuse of grafana.com.
+  gap (200ms) between requests to prevent abuse of grafana.com. Each `acquire` reserves a
+  unique slot under the lock (advancing a `nextAllowed` cursor by the gap) and waits for it
+  outside the lock, so N concurrent acquirers are spaced by the gap rather than all reading
+  the same timestamp and proceeding together.
 - **I10 — Body size caps.** Doc fetches are limited to 2 MiB; index fetches to 10 MiB.
   Prevents OOM from unexpected upstream responses.
 - **I11 — Index entry validation.** URLs parsed from the index must start with
@@ -132,6 +146,59 @@ own tags. This keeps the core free of framework opinions.
   sections from the index are not exposed as products or searchable entries.
 - **I13 — Actionable empty results.** When a tool returns no results, the response includes
   guidance on what to try next (e.g., "use list_products", "use get_doc_outline").
+- **I14 — Code-fence-aware processing.** `Outline`, `excerptBySection`, and `Cleanup`
+  all respect fenced code block boundaries via a shared `fenceInfo`/`fenceTracker`. Fences
+  are matched per CommonMark: the marker is a run of 3+ backticks or tildes (indented ≤3
+  spaces); a closing fence must use the same character, be at least as long as the opening
+  fence, and carry no info string. This means a longer fence (e.g. ` ```` `) correctly
+  contains shorter fences (` ``` `) as literal content. Content inside code blocks is never
+  modified: comment lines (e.g. `# comment`) must not be misidentified as headings, and HTML
+  comments / Hugo shortcodes inside code blocks must not be stripped.
+- **I15 — Snake_case JSON keys.** All JSON output from the MCP adapter uses `snake_case`
+  keys (e.g. `"title"`, `"url"`, `"level"`, `"name"`). The core types are intentionally
+  tag-free; the MCP adapter owns the wire format via wrapper types with explicit `json` tags.
+- **I16 — URL-safe `.md` suffix.** The `.md` suffix logic operates on the parsed URL path,
+  not the raw URL string. Fragments (`#section`), query parameters (`?v=1`), and trailing
+  slashes are handled correctly — the suffix is appended to the path only.
+- **I17 — MCP numeric input validation.** MCP handlers reject `NaN`, `Inf`, negative, and
+  out-of-range values for numeric parameters (`limit`, `offset`) with a descriptive error
+  before passing them to the core. The `safeInt` helper converts `float64` → `int` only
+  within `[0, 2^31]`; values above the cap are rejected so an out-of-range conversion (which
+  is implementation-dependent in Go and can wrap to a negative int) cannot bypass validation.
+- **I18 — Product filter resolution precedence.** The `product` parameter on `search_docs`
+  resolves to canonical product names by trying match levels in order and stopping at the
+  first that yields any match: exact (case-insensitive) → prefix → substring. A precise name
+  selects exactly one product; a loose term still resolves (`"agent"` → `"Grafana Agent"`,
+  `"loki"` → `"Grafana Loki"`). When an exact name also exists (`"grafana"` matching a bare
+  `"Grafana"` product), the exact level wins and broader prefix/substring matches are not
+  added. A filter that matches no product yields zero results.
+  *Addendum (2026-06-23): supersedes the earlier exact-only rule (`strings.EqualFold`); see
+  NOTE 28.*
+- **I19 — Index scheme validation.** `LoadIndex` only accepts `https` URLs. `file://`,
+  `http://`, and other schemes are rejected before any network call.
+- **I20 — No orphan entries.** Entries appearing in the index before any `## Product`
+  header are silently dropped. Every indexed entry has a non-empty `Product`.
+- **I21 — Double allowlist check.** `FetchDoc` checks the allowlist on both the original
+  URL and the URL after `.md` suffix transformation, preventing path manipulation through
+  the transform.
+- **I22 — User-Agent header.** All outbound HTTP requests include a `User-Agent:
+  hack-doc-server/0.1` header to identify the client to CDNs and WAFs.
+- **I23 — Unclosed fence safety.** If a fenced code block is never closed (e.g. from
+  body-size truncation), `extractCodeBlocks` treats the partial block as a protected code
+  block in its original position rather than re-ordering it to the end.
+- **I24 — ATX heading semantics.** `parseHeading` follows CommonMark for ATX headings:
+  (a) a line indented 4+ spaces is an indented code block, not a heading; (b) an optional
+  trailing run of `#`s preceded by whitespace is a closing sequence and is stripped from the
+  text (`## Storage ##` → `Storage`), while a `#` inside a word or not preceded by a space is
+  preserved (`C#`, `foo#`); (c) a heading whose text is empty after stripping is not a heading.
+  Setext headings (underline `===`/`---`) are intentionally not recognized.
+- **I25 — BOM tolerance.** A leading UTF-8 byte-order mark (`\ufeff`) on the index is stripped
+  before parsing so the first `## Product` header still matches.
+- **I26 — Index-need gating.** `cli.NeedsIndex(args)` reports whether an invocation requires a
+  loaded index. Only index-reading subcommands (`search`, `products`) return true; `get` and
+  `outline` (FetchDoc-only), help, completion, and bare invocations return false, so they work
+  offline. The allow-list is owned by the `cli` package alongside the command definitions and
+  must stay in sync with the wired subcommands (enforced by a drift test).
 
 ### Search ranking (decided)
 - **Word-boundary matching:** tokens match against whole words (not substrings). "rate"

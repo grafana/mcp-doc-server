@@ -295,3 +295,240 @@ sloglint finding is a concrete, transferable constraint for anyone writing mcp-g
 gets an addendum about version independence. No changes to hack-doc-server code — all work
 was in mcp-grafana (`tools/docs.go`, `tools/docs_unit_test.go`, `cmd/mcp-grafana/main.go`,
 `go.mod`).
+
+## 20. Code-fence-aware processing (headings, cleanup)
+*Added: 2026-06-23*
+**Decision:** `Outline`, `excerptBySection`, and `Cleanup` now respect fenced code block
+boundaries (` ``` ` and `~~~`, per CommonMark). Content inside code blocks is never
+modified or misidentified.
+**Rationale:** Three bugs were found via the Tempo configuration page — the longest page
+in Tempo's docs (~3,000 lines with dozens of YAML code blocks):
+1. `Outline` treated YAML comments (`# comment`) inside ` ```yaml ` blocks as markdown
+   headings. The Tempo page produced 1,191 "headings" instead of 50 real ones.
+2. `excerptBySection` matched heading names inside code fences before the real heading.
+3. `Cleanup`'s `stripShortcodes` and `stripHTMLComments` regex replacements ran across
+   the entire document, stripping HTML comments and Hugo shortcodes from inside code blocks
+   (e.g. template examples showing `<!-- ... -->` or `{{< shortcode >}}`). This violates
+   I8 (cleanup preserves meaning).
+**Consequence:** New invariant I14. Fixes:
+- `Outline`/`excerptBySection`: `isFenceBoundary` helper tracks fence state; lines inside
+  fences are skipped when scanning for headings. Tempo outline: 1,191 → 50.
+- `Cleanup`: `extractCodeBlocks`/`restoreCodeBlocks` replace code blocks with NUL-byte
+  placeholders before running strip operations, then restore them. Code block content is
+  byte-identical after cleanup.
+Additionally, `isFenceBoundary` was refactored to `fenceBoundaryMarker` — it now returns
+the marker type (`"``\`"` or `"~~~"`) so callers can enforce CommonMark's rule that a
+closing fence must use the same character as the opening fence. Without this, a `~~~`
+line inside a backtick-opened fence would incorrectly close it, re-exposing code block
+content to heading detection.
+Test coverage added for all four bugs (backtick fences, tilde fences, mismatched fence
+markers, HTML comments and shortcodes inside code blocks, sample fixture regression).
+
+## 21. Defense-in-depth hardening: cleanup, rate limiter, Doc.Lines
+*Added: 2026-06-23*
+**Decision:** Four additional robustness fixes discovered during systematic audit of
+markdown processing and supporting infrastructure:
+1. `collapseBlankLines` ran *after* `restoreCodeBlocks`, collapsing intentional consecutive
+   blank lines inside code blocks. Fix: reorder to run before restoration — blank line
+   collapsing now only affects content outside code blocks (strengthens I8/I14).
+2. `stripFrontmatter` matched `---` anywhere in the string, including mid-line in a YAML
+   value (e.g. `description: Use --- for separators`). Fix: require the closing `---` to
+   appear at the start of a line (`\n---`).
+3. Rate limiter gap was enforced between *releases*, not *acquires*. Under burst concurrency,
+   multiple goroutines could fire requests simultaneously without the 200ms gap. Fix: update
+   `lastCall` at acquire time after the wait completes, so the next acquirer sees the correct
+   timestamp. `release()` now only returns the semaphore slot (I9).
+4. `Doc.EnsureLines()` cached `Lines` on first call and never recomputed if `Content` was
+   mutated afterwards. Since `Doc` fields are public, external consumers could hit stale
+   `Lines`. Fix: `EnsureLines` stores a snapshot of `Content` and recomputes `Lines` when
+   `Content` has changed.
+**Rationale:** Each fix addresses a correctness issue found by systematic code review. All
+four are low-risk changes with targeted test coverage.
+**Consequence:** I8 and I14 strengthened (cleanup ordering). I9 now accurately enforces
+the documented gap. `Doc.Lines` is always consistent with `Content`.
+
+## 22. MCP adapter hardening: JSON casing, URL parsing, input validation
+*Added: 2026-06-23*
+**Decision:** Three bugs fixed in the MCP adapter and fetch layer:
+1. **JSON key casing (I15).** Core types (`Entry`, `Heading`, `Product`) carry no `json`
+   tags — intentionally serialization-agnostic (entry 18). The MCP adapter was marshaling
+   them directly, producing PascalCase JSON keys (`"Title"`, `"Level"`, `"Name"`) instead
+   of the snake_case keys documented in SPECS.md tool schemas. Fix: wrapper types
+   (`searchEntry`, `outlineHeading`, `productEntry`) with explicit `json:"snake_case"` tags.
+   The `handleGetDoc` response already used `map[string]any` with correct keys; the other
+   three handlers now use wrappers.
+2. **URL `.md` suffix (I16).** The `.md` suffix was appended to the raw URL string. URLs
+   with fragments (`#section`), query params (`?v=1`), or trailing slashes (`/`) produced
+   broken fetch URLs (`...#section.md`, `...?v=1.md`, `.../.md`). Fix: `ensureMDSuffix`
+   parses the URL, strips trailing slash, appends `.md` to the path, and reconstructs —
+   fragments and query params are preserved.
+3. **Numeric input validation (I17).** MCP handlers cast `float64` args directly to `int`
+   without checking for `NaN`, `Inf`, or negative values. Fix: `safeInt` helper rejects
+   non-finite and negative values with a descriptive error before they reach the core.
+**Rationale:** Bugs 1 and 2 were found by running the server against real URLs and
+inspecting the JSON output. Bug 3 was found by systematic audit of the `float64 → int`
+conversions. All three are correctness issues in the adapter layer — the core API was
+unaffected.
+**Consequence:** New invariants I15, I16, I17 in SPECS.md. Wrapper types added to the MCP
+adapter (but NOT to the core — the serialization-agnostic design from entry 18 is preserved).
+`net/url` now used in `fetch.go` for URL manipulation.
+
+## 23. Systematic hardening pass: search, index, cleanup, fetch
+*Added: 2026-06-23*
+**Decision:** Eleven edge-case bugs fixed across the codebase, discovered by systematic
+code-path audit:
+1. **`buildIDF` empty-index guard.** Early return for empty corpus avoids `math.Log(0/0)`.
+   Not a crash (the loop body never runs), but now explicitly handled.
+2. **Scanner buffer.** `bufio.Scanner` default max token is 64 KiB. Set to 1 MiB for the
+   index parser to handle entries with very long descriptions without silent truncation.
+3. **`needsIndex` rewrite.** Old logic checked all args against a deny list (`"-h"`,
+   `"help"`, `"completion"`), so `docs get --section help` would skip loading the index
+   because `"help"` matched as a bare arg. New logic: skip flags, then check the first
+   positional arg against an allow list (`"search"`, `"products"` — the only commands
+   that read the index). `get` and `outline` only call `FetchDoc`.
+4. **Double allowlist check.** `FetchDoc` now checks the allowlist on both the original
+   URL and the URL after `ensureMDSuffix` transforms it. Prevents path manipulation
+   through the URL transform (I21).
+5. **Unclosed fence in `extractCodeBlocks`.** If a code fence opens but never closes
+   (e.g. body-size truncation), the old code appended the raw fence lines at the end of
+   `out`, re-ordering content. Fix: treat the unclosed block as a protected code block
+   via a placeholder in its original position (I23).
+6. **Exact product filter.** `Search` was using `containsFold` (substring match), so
+   `product="Lo"` matched `"Grafana Loki"`. Changed to `strings.EqualFold` for exact
+   case-insensitive matching (I18).
+   *Addendum (2026-06-23): replaced by the hybrid precedence resolver in NOTE 28 —
+   exact-only matching was too strict for agents/CLI users who pass loose terms.*
+7. **Shortcode regex.** The old regex `[^}]*[>%]\}\}` could over-match when shortcode
+   arguments contained `>`. Replaced with two non-greedy alternatives:
+   `\{\{<.*?>}}` and `\{\{%.*?%}}`.
+8. **User-Agent header.** All outbound HTTP requests (`httpClient`, `indexClient`) now
+   include `User-Agent: hack-doc-server/0.1` to prevent CDN/WAF throttling (I22).
+9. **`collapseBlankLines` optimization.** Replaced the `for Contains + ReplaceAll` loop
+   (O(n*m) worst case with hundreds of consecutive blank lines) with a single-pass
+   `strings.Builder` approach.
+10. **Orphan entries.** Entries before any `## Product` header had `Product: ""` and were
+    searchable without product affiliation. Now silently dropped (I20).
+11. **Index URL scheme validation.** `LoadIndex` now rejects non-`https` URLs (e.g.
+    `file:///etc/passwd`, `http://`) before making any network call (I19).
+**Rationale:** Each fix addresses a concrete edge case found by reviewing every code path
+in the four core files. All are low-risk, targeted changes with test coverage.
+**Consequence:** New invariants I18–I23 in SPECS.md. `needsIndex` rewritten with an
+allow-list approach. `collapseBlankLines` is now O(n). Product filter semantics changed
+from substring to exact match — callers must pass the full product name.
+
+## 24. Fuzz-discovered bug: Cleanup not idempotent
+*Added: 2026-06-23*
+**Decision:** `Cleanup` now runs shortcode and HTML comment stripping in a convergence
+loop (`for { prev := s; strip; strip; if s == prev { break } }`).
+**Rationale:** Fuzz testing (`FuzzCleanup`, 5s run) discovered that removing an HTML
+comment can reveal a shortcode: `{<!---->{<>}}` → strip HTML comment → `{{<>}}` →
+strip shortcode → empty. A second `Cleanup` pass would strip the revealed shortcode,
+breaking idempotency (`Cleanup(Cleanup(x)) != Cleanup(x)`). The convergence loop
+ensures both strippers run until no more changes occur, guaranteeing idempotency.
+**Consequence:** I8 strengthened — `Cleanup` is now provably idempotent (tested by
+fuzz and a targeted `TestCleanup_Idempotent` with 8 representative inputs including
+the exact fuzz failure). Negligible perf impact — the loop runs at most 2 iterations
+for any realistic input.
+
+## 25. Behavioral-depth fixes: ATX heading semantics and BOM tolerance
+*Added: 2026-06-23*
+**Decision:** Three CommonMark-conformance bugs found during behavioral-depth review
+are fixed in `parseHeading` ([outline.go]) and `LoadIndexFromReader` ([index.go]):
+1. **Trailing `#` closing sequence** is now stripped: `## Storage ##` yields text
+   `Storage`, not `Storage ##`. A `#` inside a word (`C#`) or not preceded by a space
+   (`foo#`) is preserved. A heading that is only `#`s is treated as a non-heading.
+2. **Indented code blocks** (4+ leading spaces) starting with `#` are no longer
+   misidentified as headings. `Outline` only protects *fenced* blocks; indented code
+   blocks previously slipped through to `parseHeading`.
+3. **UTF-8 BOM** on the index is stripped from the first line, so a BOM-prefixed
+   `## Product` header still matches (previously the whole first product and its
+   entries were dropped).
+**Rationale:** (1) broke `get_doc --section "Storage"` matching against pages using
+closed ATX headings; (2) produced phantom outline entries from code samples; (3) is a
+realistic failure for index files served with a BOM.
+**Consequence:** New invariants I24 (ATX heading semantics) and I25 (BOM tolerance).
+Tests added in `outline_test.go` (`TestParseHeading_StripsTrailingHashes`,
+`TestParseHeading_IgnoresIndentedCodeBlocks`, `TestOutline_IgnoresIndentedCodeHash`)
+and `index_test.go` (`TestLoadIndex_StripsBOM`). Setext headings remain unsupported by
+design — the index/llms format uses ATX exclusively.
+
+## 26. Behavioral-depth fixes: CRLF, variable-length fences, TOML frontmatter
+*Added: 2026-06-23*
+**Decision:** Three more cleanup/parsing bugs found during behavioral-depth review are fixed:
+1. **CRLF line endings**: `Cleanup` now normalizes `\r\n` and `\r` to `\n` up front.
+   Previously `collapseBlankLines` counted `\n` only, so a `\r` in `\r\n\r\n` reset the run
+   counter and blank-line collapsing silently no-opped on CRLF content.
+2. **Variable-length fences**: fence detection is unified into a shared `fenceInfo` +
+   `fenceTracker` (in [outline.go]) used by `Outline`, `excerptBySection`, and
+   `extractCodeBlocks`. Fences now track the marker character *and* run length, so a 4-backtick
+   fence containing a 3-backtick line is no longer closed early (which previously leaked the
+   inner block's content to the shortcode/comment strippers and to heading detection). A closing
+   fence must match the char, be ≥ the opening length, and have no info string (per CommonMark).
+   The old fixed-3-char `fenceBoundaryMarker` is removed.
+3. **TOML frontmatter**: `stripFrontmatter` now handles `+++`-delimited TOML in addition to
+   `---` YAML (Grafana docs are built with Hugo, which supports both).
+**Idempotency follow-on:** adding TOML stripping surfaced a latent idempotency bug (also
+present for `---`): an HTML comment or leading whitespace could hide a frontmatter delimiter so
+it was only stripped on the second pass. Fixed by (a) trimming the leading/trailing edge before
+frontmatter detection, and (b) moving `stripFrontmatter` into the existing shortcode/comment
+convergence loop. `FuzzCleanup` confirms idempotency holds.
+**Rationale:** CRLF and TOML are realistic for HTTP-fetched Hugo content; nested fences appear
+in docs that document markdown itself.
+**Consequence:** I8 extended (CRLF normalization, edge trimming, frontmatter in the convergence
+loop) and I14 extended (variable-length, CommonMark-conformant fence matching via shared helper).
+Tests: `TestCleanup_CRLF`, `TestCleanup_VariableLengthFences`, `TestCleanup_TOMLFrontmatter`,
+`TestOutline_VariableLengthFences`, and `FuzzFenceInfo` (replacing `FuzzFenceBoundaryMarker`).
+
+## 27. Move index-need gating into the cli package
+*Added: 2026-06-23*
+**Decision:** The `needsIndex` helper that lived in `cmd/docs/main.go` (untested, `package
+main`) is promoted to `cli.NeedsIndex` alongside the command definitions, backed by an
+`indexReadingCommands` allow-list. `cmd/docs` now calls `cli.NeedsIndex`; `indexURL` stays in
+`cmd/docs` because `DOCS_INDEX_URL` is that binary's concern.
+**Rationale:** Keep `main` thin and put branching logic in an importable, testable package
+(standard Go practice). This function had a prior bug (fragile deny-list → allow-list) with no
+regression test; it is also reusable by other front-ends (e.g. gcx) that gate index loading.
+**Consequence:** New invariant I26. Table test `TestNeedsIndex` plus a drift guard
+`TestNeedsIndexInSyncWithCommands` that asserts every allow-listed name is a real subcommand.
+`cmd/docs/main.go` is now just wiring (no testable logic beyond the env-var lookup).
+
+## 28. Hybrid product filter resolution (exact → prefix → substring)
+*Added: 2026-06-23*
+**Decision:** Replace the exact-only product filter (NOTE 23, item 6) with a tiered
+resolver, `resolveProductFilter`. It maps the user's `product` string to the set of
+canonical product names by trying match levels in precedence order and stopping at the
+first non-empty level: exact (case-insensitive), then prefix, then substring. A precise
+name selects exactly one product; a loose term still resolves (`"agent"` →
+`"Grafana Agent"`); an exact hit (`"grafana"` = bare `"Grafana"`) wins over broader
+prefix/substring candidates; an unmatched filter yields zero results.
+**Rationale:** Exact-only matching (introduced to make results deterministic) was hostile to
+the primary callers — agents and CLI users routinely pass short product hints (`loki`,
+`agent`) rather than the full catalog name. The tiered resolver keeps determinism (same
+input → same output, no relevance dependence) while restoring friendly partial matching as
+a *fallback*, not the default. Resolution is intentionally in the core so all three surfaces
+(cmd/docs CLI, gcx, MCP `search_docs`) get identical behavior with no consumer code changes.
+**Consequence:** I18 rewritten (precedence rule + addendum). `Search` resolves the filter to
+a product-name set before scoring; `strings.EqualFold` filtering removed. Test
+`TestSearch_ExactProductMatch` became `TestSearch_ProductResolution` covering exact, prefix,
+substring, and unknown cases. Downstream: gcx's `--product agent` test now passes via the
+substring fallback after it re-vendors; mcp-grafana (exact names already) is unaffected.
+
+## 29. PR #3 review fixes: rate-limiter spacing and safeInt overflow
+*Added: 2026-06-23*
+**Decision:** Address two Copilot review findings on PR #3.
+1. **Rate-limiter gap not enforced under concurrency.** With `maxConcurrent=5`, multiple
+   goroutines could pass the semaphore, all read the same `lastCall`, compute the same wait,
+   wake together, and proceed near-simultaneously — collapsing the 200ms gap. Replaced
+   `lastCall` with a `nextAllowed` cursor: `acquire` reserves `slot = max(now, nextAllowed)`
+   and advances `nextAllowed = slot + minGap` while holding the lock, then waits for `slot`
+   outside the lock. Each concurrent acquirer now gets a distinct, spaced slot.
+2. **`safeInt` overflow.** `int(v)` for a finite float64 beyond int range is
+   implementation-dependent in Go (yields a negative number on amd64), bypassing the
+   negativity check. Added an explicit upper bound (`maxSafeInt = 1<<31`); larger values are
+   rejected with a descriptive error.
+**Rationale:** Both are correctness gaps in code this PR was already hardening. The
+rate-limiter fix makes the documented I9 spacing invariant actually hold under concurrency;
+the safeInt fix closes a validation bypass in the MCP input sanitizer (I17).
+**Consequence:** I9 and I17 reworded. `TestRateLimiter_ConcurrentStress` strengthened to
+assert total elapsed ≥ (N−1)·gap (true spacing, not just no-deadlock). `TestSafeInt` extended
+with NaN/Inf/overflow/cap cases. No public API change; both consumers unaffected.

@@ -1,16 +1,10 @@
 // NOTE: Any changes to this file must be reflected in the corresponding SPECS.md or NOTES.md.
 
 // Package cli provides a cobra adapter for grafanadocs. It exposes the core
-// retrieval functions as a mountable "docs" command group (search, get,
-// outline, products), following gcx's command conventions.
+// as a mountable "docs" command group (search, get, outline, products).
 //
-// The adapter depends only on cobra/pflag and the grafanadocs core — it does
-// NOT import gcx internals (which are not importable from external modules).
-// Output is rendered by a small local helper (output) that mirrors the shape
-// of gcx's output.Options (package internal/output) closely enough that a
-// gcx-native port is mechanical: swap output for output.Options, and have each
-// text codec implement gcx's format.Codec (the Encode method carries over as-is;
-// add a trivial Format() and an unsupported Decode()).
+// Depends only on cobra/pflag and the grafanadocs core — no gcx internals.
+// A gcx-native port swaps the local output helper for output.Options.
 //
 // Agent annotations (applied by gcx from its own registry, not here):
 //
@@ -24,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/grafana/hack-doc-server/pkg/grafanadocs"
 	"github.com/spf13/cobra"
@@ -48,6 +43,28 @@ func Command(idx *grafanadocs.Index) *cobra.Command {
 		productsCommand(idx),
 	)
 	return cmd
+}
+
+// indexReadingCommands are the docs subcommands that query the in-memory index.
+// `get` and `outline` only call FetchDoc, so they never need it. Keep this in
+// sync with the subcommands wired in Command.
+var indexReadingCommands = map[string]bool{
+	"search":   true,
+	"products": true,
+}
+
+// NeedsIndex reports whether a docs invocation requires a loaded index, given
+// the args after the program name. Only the commands in indexReadingCommands
+// read the index; help, completion, and bare invocations need nothing. Leading
+// flags (e.g. -v) are skipped to find the subcommand token.
+func NeedsIndex(args []string) bool {
+	for _, a := range args {
+		if strings.HasPrefix(a, "-") {
+			continue
+		}
+		return indexReadingCommands[a]
+	}
+	return false
 }
 
 // textCodec renders a value as human-readable text for the default format.

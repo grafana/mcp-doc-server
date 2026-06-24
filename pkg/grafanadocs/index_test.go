@@ -76,6 +76,65 @@ func TestIndexRejectsNonGrafanaURLs(t *testing.T) {
 	}
 }
 
+func TestEntriesBeforeProductHeaderDropped(t *testing.T) {
+	input := `- [Orphan](https://grafana.com/docs/orphan.md): no product header yet
+## Grafana Tempo documentation
+- [Real](https://grafana.com/docs/tempo.md): has a product
+`
+	idx, err := LoadIndexFromReader(strings.NewReader(input))
+	require.NoError(t, err)
+	require.Equal(t, 1, idx.EntryCount(), "entries before any product header must be dropped")
+	require.Equal(t, "Grafana Tempo", idx.Entries[0].Product)
+}
+
+func TestLoadIndex_RejectsNonHTTPS(t *testing.T) {
+	_, err := LoadIndex(t.Context(), "file:///etc/passwd")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "rejected")
+
+	_, err = LoadIndex(t.Context(), "http://grafana.com/llms-full.txt")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "rejected")
+}
+
+func FuzzLoadIndexFromReader(f *testing.F) {
+	f.Add("## Product A documentation\n- [Title](https://grafana.com/docs/a.md): desc\n")
+	f.Add("## Bad\n- [X](https://evil.com/x.md): evil\n")
+	f.Add("")
+	f.Add("just some random text\n\n\n")
+	f.Add("## \n- [](https://grafana.com/docs/empty.md): \n")
+
+	f.Fuzz(func(t *testing.T, input string) {
+		idx, err := LoadIndexFromReader(strings.NewReader(input))
+		if err != nil {
+			return
+		}
+		for _, e := range idx.Entries {
+			if e.Title == "" {
+				t.Error("entry has empty Title")
+			}
+			if e.URL == "" {
+				t.Error("entry has empty URL")
+			}
+			if e.Product == "" {
+				t.Error("entry has empty Product")
+			}
+			if !strings.HasPrefix(e.URL, "https://grafana.com/") {
+				t.Errorf("entry URL %q not from grafana.com", e.URL)
+			}
+		}
+	})
+}
+
+func TestLoadIndex_StripsBOM(t *testing.T) {
+	// A UTF-8 BOM prefix must not prevent the first product header from matching.
+	input := "\ufeff## Grafana Tempo documentation\n- [Configure](https://grafana.com/docs/tempo/latest/configuration.md): Configure Tempo\n"
+	idx, err := LoadIndexFromReader(strings.NewReader(input))
+	require.NoError(t, err)
+	require.Equal(t, 1, idx.EntryCount(), "BOM-prefixed first product must still be parsed")
+	require.Equal(t, "Grafana Tempo", idx.Entries[0].Product)
+}
+
 func TestProductNameCleaning(t *testing.T) {
 	tests := []struct {
 		header   string

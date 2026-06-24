@@ -16,6 +16,8 @@ This is the main configuration page.
 Configure authentication for the sample component.
 
 ```yaml
+# Enable authentication for all API endpoints.
+# Supported types: bearer, basic, api-key.
 auth:
   enabled: true
   type: bearer
@@ -34,6 +36,17 @@ Local storage uses the filesystem.
 ### Remote storage
 
 Remote storage supports S3 and GCS.
+
+## Templates
+
+Hugo template examples for embedding docs.
+
+```html
+<!-- This comment should be preserved inside the code block -->
+<div class="docs-content">
+  {{< docs/shared source="tempo" lookup="config.md" >}}
+</div>
+```
 
 ## Advanced
 

@@ -4,6 +4,7 @@ package grafanadocs
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -131,6 +132,70 @@ func TestBuildIDF(t *testing.T) {
 	// "grafana" appears in nearly every entry, so its IDF should be low.
 	// "clustering" appears rarely, so its IDF should be higher.
 	require.Greater(t, idx.idf["clustering"], idx.idf["grafana"])
+}
+
+func TestBuildIDF_EmptyIndex(t *testing.T) {
+	idf := buildIDF(nil)
+	require.NotNil(t, idf)
+	require.Empty(t, idf)
+}
+
+func TestSearch_ProductResolution(t *testing.T) {
+	idx := loadTestIndex(t)
+
+	t.Run("exact name matches case-insensitively", func(t *testing.T) {
+		results := Search(idx, "clustering", SearchOpts{Product: "grafana agent"})
+		require.NotEmpty(t, results)
+		for _, e := range results {
+			require.Equal(t, "Grafana Agent", e.Product)
+		}
+	})
+
+	t.Run("prefix resolves to the product", func(t *testing.T) {
+		results := Search(idx, "clustering", SearchOpts{Product: "grafana"})
+		require.NotEmpty(t, results)
+		for _, e := range results {
+			require.Equal(t, "Grafana Agent", e.Product)
+		}
+	})
+
+	t.Run("substring resolves to the product", func(t *testing.T) {
+		results := Search(idx, "clustering", SearchOpts{Product: "agent"})
+		require.NotEmpty(t, results)
+		for _, e := range results {
+			require.Equal(t, "Grafana Agent", e.Product)
+		}
+	})
+
+	t.Run("unknown product returns nothing", func(t *testing.T) {
+		results := Search(idx, "clustering", SearchOpts{Product: "nonexistent"})
+		require.Empty(t, results)
+	})
+}
+
+func TestSearch_TitleMatchBeatsDescriptionOnly(t *testing.T) {
+	idx := loadTestIndex(t)
+
+	results := Search(idx, "clustering", SearchOpts{Limit: 10})
+	require.NotEmpty(t, results)
+
+	// The top result should have "clustering" in its title.
+	topWords := wordSet(results[0].Title)
+	require.True(t, topWords["clustering"],
+		"top result %q should have 'clustering' in title", results[0].Title)
+}
+
+func TestSearch_ResultsHaveRequiredFields(t *testing.T) {
+	idx := loadTestIndex(t)
+
+	results := Search(idx, "grafana", SearchOpts{Limit: 20})
+	for _, e := range results {
+		require.NotEmpty(t, e.Title)
+		require.NotEmpty(t, e.URL)
+		require.NotEmpty(t, e.Product)
+		require.True(t, strings.HasPrefix(e.URL, "https://grafana.com/"),
+			"result URL %q not from grafana.com", e.URL)
+	}
 }
 
 func TestTokenize(t *testing.T) {

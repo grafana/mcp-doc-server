@@ -25,8 +25,7 @@ var httpClient = &http.Client{
 	},
 }
 
-// overrideAllowlistCheck is a test hook. When non-nil, it replaces checkAllowlist
-// in FetchDoc. Never set outside of tests.
+// overrideAllowlistCheck is a test hook; never set outside of tests.
 var overrideAllowlistCheck func(string) error
 
 // fetchLimiter prevents excessive outbound requests. Allows a burst of 5
@@ -34,10 +33,10 @@ var overrideAllowlistCheck func(string) error
 var fetchLimiter = newRateLimiter(5, 200*time.Millisecond)
 
 type rateLimiter struct {
-	mu       sync.Mutex
-	lastCall time.Time
-	sem      chan struct{}
-	minGap   time.Duration
+	mu          sync.Mutex
+	nextAllowed time.Time
+	sem         chan struct{}
+	minGap      time.Duration
 }
 
 func newRateLimiter(maxConcurrent int, minGap time.Duration) *rateLimiter {
@@ -54,26 +53,29 @@ func (rl *rateLimiter) acquire(ctx context.Context) error {
 		return ctx.Err()
 	}
 
+	// Reserve a unique slot while holding the lock, then wait for it outside the
+	// lock. Reserving advances nextAllowed by minGap so concurrent acquirers each
+	// get a distinct, spaced slot rather than all reading the same lastCall.
 	rl.mu.Lock()
-	elapsed := time.Since(rl.lastCall)
-	if wait := rl.minGap - elapsed; wait > 0 {
-		rl.mu.Unlock()
+	slot := time.Now()
+	if rl.nextAllowed.After(slot) {
+		slot = rl.nextAllowed
+	}
+	rl.nextAllowed = slot.Add(rl.minGap)
+	rl.mu.Unlock()
+
+	if wait := time.Until(slot); wait > 0 {
 		select {
 		case <-time.After(wait):
 		case <-ctx.Done():
 			<-rl.sem
 			return ctx.Err()
 		}
-	} else {
-		rl.mu.Unlock()
 	}
 	return nil
 }
 
 func (rl *rateLimiter) release() {
-	rl.mu.Lock()
-	rl.lastCall = time.Now()
-	rl.mu.Unlock()
 	<-rl.sem
 }
 
@@ -82,12 +84,17 @@ type Doc struct {
 	URL     string
 	Content []byte
 	Lines   []string // content split by newline, computed lazily
+
+	linesContent string // snapshot of Content when Lines was computed
 }
 
-// EnsureLines splits Content into lines if not already done.
+// EnsureLines splits Content into lines if not already done, or recomputes
+// if Content has changed since the last call.
 func (d *Doc) EnsureLines() {
-	if d.Lines == nil {
-		d.Lines = strings.Split(string(d.Content), "\n")
+	current := string(d.Content)
+	if d.Lines == nil || d.linesContent != current {
+		d.Lines = strings.Split(current, "\n")
+		d.linesContent = current
 	}
 }
 
@@ -108,9 +115,12 @@ func FetchDoc(ctx context.Context, rawURL string) (*Doc, error) {
 	}
 	defer fetchLimiter.release()
 
-	fetchURL := rawURL
-	if !strings.HasSuffix(fetchURL, ".md") {
-		fetchURL += ".md"
+	fetchURL, err := ensureMDSuffix(rawURL)
+	if err != nil {
+		return nil, fmt.Errorf("grafanadocs: invalid URL: %w", err)
+	}
+	if err := check(fetchURL); err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fetchURL, nil)
@@ -118,6 +128,7 @@ func FetchDoc(ctx context.Context, rawURL string) (*Doc, error) {
 		return nil, fmt.Errorf("grafanadocs: build request: %w", err)
 	}
 	req.Header.Set("Accept", "text/markdown")
+	req.Header.Set("User-Agent", "hack-doc-server/0.1")
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
@@ -136,6 +147,24 @@ func FetchDoc(ctx context.Context, rawURL string) (*Doc, error) {
 
 	cleaned := Cleanup(body)
 	return &Doc{URL: rawURL, Content: cleaned}, nil
+}
+
+// ensureMDSuffix appends .md to the URL path if it doesn't already end with it.
+// Operates on the parsed path component so fragments and query params are preserved.
+func ensureMDSuffix(rawURL string) (string, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return "", err
+	}
+	p := strings.TrimRight(u.Path, "/")
+	if p == "" {
+		p = u.Path
+	}
+	if !strings.HasSuffix(p, ".md") {
+		p += ".md"
+	}
+	u.Path = p
+	return u.String(), nil
 }
 
 // checkAllowlist rejects URLs that are not canonical grafana.com docs pages.

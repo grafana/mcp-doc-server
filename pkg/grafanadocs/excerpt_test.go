@@ -64,3 +64,59 @@ func TestExcerpt(t *testing.T) {
 		require.Empty(t, result.Content)
 	})
 }
+
+func TestExcerpt_RangeInvariants(t *testing.T) {
+	raw, err := os.ReadFile("testdata/pages/sample.md")
+	require.NoError(t, err)
+
+	doc := &Doc{URL: "test", Content: Cleanup(raw)}
+	doc.EnsureLines()
+
+	cases := []ExcerptOpts{
+		{},
+		{Offset: 0, Limit: 10},
+		{Offset: 5, Limit: 20},
+		{Offset: 99999},
+		{Section: "Authentication"},
+		{Section: "nonexistent"},
+	}
+
+	for _, opts := range cases {
+		result := Excerpt(doc, opts)
+
+		require.GreaterOrEqual(t, result.Total, 0, "Total must be non-negative")
+
+		if result.Content == "" {
+			continue
+		}
+
+		require.GreaterOrEqual(t, result.Start, 1, "Start must be >= 1")
+		require.LessOrEqual(t, result.End, result.Total, "End must be <= Total")
+		require.LessOrEqual(t, result.Start, result.End, "Start must be <= End")
+
+		lines := strings.Split(result.Content, "\n")
+		expectedLines := result.End - result.Start + 1
+		require.Equal(t, expectedLines, len(lines),
+			"line count must match range [%d, %d]", result.Start, result.End)
+	}
+}
+
+func TestExcerptBySection_SkipsCodeFenceHeadings(t *testing.T) {
+	content := []byte("## Config\n\nSome intro.\n\n```yaml\n# Storage\nbackend: s3\n```\n\n## Storage\n\nReal storage section.\n\n## Other\n")
+	doc := &Doc{URL: "https://grafana.com/docs/test.md", Content: content}
+
+	t.Run("matches real heading not code fence comment", func(t *testing.T) {
+		result := Excerpt(doc, ExcerptOpts{Section: "Storage"})
+		require.NotEmpty(t, result.Content)
+		require.Contains(t, result.Content, "## Storage")
+		require.Contains(t, result.Content, "Real storage section.")
+		require.NotContains(t, result.Content, "backend: s3")
+	})
+
+	t.Run("section end not confused by code fence comment", func(t *testing.T) {
+		content := []byte("## Main\n\nIntro.\n\n```yaml\n# Main\nkey: val\n```\n\nMore content under Main.\n\n## Next\n")
+		doc := &Doc{URL: "https://grafana.com/docs/test.md", Content: content}
+		result := Excerpt(doc, ExcerptOpts{Section: "Main"})
+		require.Contains(t, result.Content, "More content under Main.")
+	})
+}

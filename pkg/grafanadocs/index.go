@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -33,11 +34,21 @@ var skipProducts = map[string]bool{
 var entryLine = regexp.MustCompile(`^- \[([^\]]+)\]\(([^)]+)\)(?::\s*(.*))?$`)
 
 // LoadIndex fetches and parses the documentation index from the given URL.
-func LoadIndex(ctx context.Context, url string) (*Index, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+// Only https URLs are accepted to prevent local file reads via file://.
+func LoadIndex(ctx context.Context, rawURL string) (*Index, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, fmt.Errorf("grafanadocs: invalid index URL: %w", err)
+	}
+	if u.Scheme != "https" {
+		return nil, fmt.Errorf("grafanadocs: rejected index URL scheme %q (only https allowed)", u.Scheme)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("grafanadocs: build request: %w", err)
 	}
+	req.Header.Set("User-Agent", "hack-doc-server/0.1")
 	resp, err := indexClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("grafanadocs: fetch index: %w", err)
@@ -61,8 +72,14 @@ func LoadIndexFromReader(r io.Reader) (*Index, error) {
 	)
 
 	scanner := bufio.NewScanner(r)
+	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024) // 1 MiB max line
+	first := true
 	for scanner.Scan() {
 		line := scanner.Text()
+		if first {
+			line = strings.TrimPrefix(line, "\ufeff") // strip UTF-8 BOM
+			first = false
+		}
 
 		if m := productHeader.FindStringSubmatch(line); m != nil {
 			if current != "" && !skipProducts[current] {
@@ -75,12 +92,12 @@ func LoadIndexFromReader(r io.Reader) (*Index, error) {
 		}
 
 		if m := entryLine.FindStringSubmatch(line); m != nil {
-			if skipProducts[current] {
+			if current == "" || skipProducts[current] {
 				continue
 			}
 			entryURL := m[2]
 			if !strings.HasPrefix(entryURL, "https://grafana.com/") {
-				continue // reject entries with non-grafana URLs
+				continue
 			}
 			entries = append(entries, Entry{
 				Title:       m[1],
