@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 
 	"github.com/grafana/hack-doc-server/pkg/grafanadocs"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -40,7 +41,26 @@ func NewMCPServer(idx *grafanadocs.Index, version string) *server.MCPServer {
 	return srv
 }
 
-// Tool definitions
+// Wrapper types — the core is serialization-agnostic (no json tags), so the
+// MCP adapter owns the wire format. Keys match the SPECS.md tool schemas.
+
+type searchEntry struct {
+	Title       string `json:"title"`
+	URL         string `json:"url"`
+	Description string `json:"description"`
+	Product     string `json:"product"`
+}
+
+type outlineHeading struct {
+	Level int    `json:"level"`
+	Text  string `json:"text"`
+	Line  int    `json:"line"`
+}
+
+type productEntry struct {
+	Name  string `json:"name"`
+	Count int    `json:"count"`
+}
 
 func (s *Server) searchDocsTool() mcp.Tool {
 	return newReadOnlyTool("search_docs",
@@ -74,8 +94,6 @@ func (s *Server) listProductsTool() mcp.Tool {
 	)
 }
 
-// Handlers
-
 func (s *Server) handleSearchDocs(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	args := request.GetArguments()
 
@@ -88,8 +106,12 @@ func (s *Server) handleSearchDocs(ctx context.Context, request mcp.CallToolReque
 	if product, ok := args["product"].(string); ok {
 		opts.Product = product
 	}
-	if limit, ok := args["limit"].(float64); ok && limit > 0 {
-		opts.Limit = int(limit)
+	if v, ok := args["limit"].(float64); ok {
+		n, err := safeInt(v)
+		if err != nil {
+			return mcp.NewToolResultError("limit: " + err.Error()), nil
+		}
+		opts.Limit = n
 	}
 
 	results := grafanadocs.Search(s.idx, query, opts)
@@ -102,7 +124,17 @@ func (s *Server) handleSearchDocs(ctx context.Context, request mcp.CallToolReque
 		}
 		return mcp.NewToolResultText(msg), nil
 	}
-	return jsonResult(results)
+
+	entries := make([]searchEntry, len(results))
+	for i, e := range results {
+		entries[i] = searchEntry{
+			Title:       e.Title,
+			URL:         e.URL,
+			Description: e.Description,
+			Product:     e.Product,
+		}
+	}
+	return jsonResult(entries)
 }
 
 func (s *Server) handleGetDoc(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -122,11 +154,19 @@ func (s *Server) handleGetDoc(ctx context.Context, request mcp.CallToolRequest) 
 	if section, ok := args["section"].(string); ok {
 		opts.Section = section
 	}
-	if offset, ok := args["offset"].(float64); ok {
-		opts.Offset = int(offset)
+	if v, ok := args["offset"].(float64); ok {
+		n, err := safeInt(v)
+		if err != nil {
+			return mcp.NewToolResultError("offset: " + err.Error()), nil
+		}
+		opts.Offset = n
 	}
-	if limit, ok := args["limit"].(float64); ok {
-		opts.Limit = int(limit)
+	if v, ok := args["limit"].(float64); ok {
+		n, err := safeInt(v)
+		if err != nil {
+			return mcp.NewToolResultError("limit: " + err.Error()), nil
+		}
+		opts.Limit = n
 	}
 
 	result := grafanadocs.Excerpt(doc, opts)
@@ -158,7 +198,11 @@ func (s *Server) handleGetDocOutline(ctx context.Context, request mcp.CallToolRe
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 
-	headings := grafanadocs.Outline(doc)
+	raw := grafanadocs.Outline(doc)
+	headings := make([]outlineHeading, len(raw))
+	for i, h := range raw {
+		headings[i] = outlineHeading{Level: h.Level, Text: h.Text, Line: h.Line}
+	}
 	return jsonResult(map[string]any{
 		"url":      doc.URL,
 		"headings": headings,
@@ -166,17 +210,21 @@ func (s *Server) handleGetDocOutline(ctx context.Context, request mcp.CallToolRe
 }
 
 func (s *Server) handleListProducts(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	raw := s.idx.Products()
+	products := make([]productEntry, len(raw))
+	for i, p := range raw {
+		products[i] = productEntry{Name: p.Name, Count: p.Count}
+	}
 	return jsonResult(map[string]any{
-		"products": s.idx.Products(),
+		"products": products,
 	})
 }
-
-// Helpers
 
 func newReadOnlyTool(name string, opts ...mcp.ToolOption) mcp.Tool {
 	opts = append(opts,
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 	return mcp.NewTool(name, opts...)
 }
@@ -187,4 +235,15 @@ func jsonResult(v any) (*mcp.CallToolResult, error) {
 		return nil, fmt.Errorf("marshal result: %w", err)
 	}
 	return mcp.NewToolResultText(string(data)), nil
+}
+
+// safeInt converts a JSON number to int, rejecting NaN, Inf, and negatives.
+func safeInt(v float64) (int, error) {
+	if math.IsNaN(v) || math.IsInf(v, 0) {
+		return 0, fmt.Errorf("must be a finite number")
+	}
+	if v < 0 {
+		return 0, fmt.Errorf("must not be negative")
+	}
+	return int(v), nil
 }

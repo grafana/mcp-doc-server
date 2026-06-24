@@ -2,9 +2,7 @@
 
 package grafanadocs
 
-import (
-	"strings"
-)
+import "strings"
 
 const defaultExcerptLines = 80 // ~2000 tokens at ~25 tokens/line
 
@@ -40,8 +38,12 @@ func excerptBySection(doc *Doc, section string, total int) ExcerptResult {
 	sectionLower := strings.ToLower(section)
 	startIdx := -1
 	startLevel := 0
+	var fence fenceTracker
 
 	for i, line := range doc.Lines {
+		if fence.skip(line) {
+			continue
+		}
 		level, text := parseHeading(line)
 		if level > 0 && strings.ToLower(text) == sectionLower {
 			startIdx = i
@@ -54,9 +56,12 @@ func excerptBySection(doc *Doc, section string, total int) ExcerptResult {
 		return ExcerptResult{Total: total}
 	}
 
-	// Find the end: next heading at same or higher level.
 	endIdx := total
+	fence = fenceTracker{}
 	for i := startIdx + 1; i < total; i++ {
+		if fence.skip(doc.Lines[i]) {
+			continue
+		}
 		level, _ := parseHeading(doc.Lines[i])
 		if level > 0 && level <= startLevel {
 			endIdx = i

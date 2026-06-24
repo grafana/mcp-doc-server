@@ -30,8 +30,7 @@ func (o *outlineOpts) Validate(rawURL string) error {
 	return nil
 }
 
-// outlineResult is the structured form of a page's heading outline. The "url"
-// and "headings" keys mirror the MCP adapter.
+// outlineResult mirrors the MCP adapter's JSON keys for cross-surface consistency.
 type outlineResult struct {
 	URL      string                `json:"url" yaml:"url"`
 	Headings []grafanadocs.Heading `json:"headings" yaml:"headings"`

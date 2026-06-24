@@ -19,11 +19,9 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	// The adapter binds the index at construction, so build it before Execute.
-	// Help and completion don't touch the index — skip the network fetch there
-	// so `docs --help` works instantly and offline.
+	// Skip the network fetch for help/completion so they work offline.
 	idx := &grafanadocs.Index{}
-	if needsIndex(os.Args[1:]) {
+	if cli.NeedsIndex(os.Args[1:]) {
 		loaded, err := grafanadocs.LoadIndex(ctx, indexURL())
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "docs: failed to load index: %v\n", err)
@@ -45,19 +43,4 @@ func indexURL() string {
 		return u
 	}
 	return grafanadocs.DefaultIndexURL
-}
-
-// needsIndex reports whether the invocation will actually run a subcommand that
-// reads the index. Bare `docs`, help, and completion render without it.
-func needsIndex(args []string) bool {
-	if len(args) == 0 {
-		return false
-	}
-	for _, a := range args {
-		switch a {
-		case "-h", "--help", "help", "completion":
-			return false
-		}
-	}
-	return true
 }

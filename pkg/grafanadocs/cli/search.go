@@ -58,9 +58,8 @@ func searchCommand(idx *grafanadocs.Index) *cobra.Command {
 				Product: opts.product,
 				Limit:   opts.limit,
 			})
-			// Guidance goes to stderr so stdout stays a clean, parseable result
-			// set (invariant I13: actionable empty results).
 			if len(results) == 0 {
+				// stderr so stdout stays parseable (I13)
 				_, _ = fmt.Fprintln(cmd.ErrOrStderr(), emptySearchHint(opts.product))
 			}
 			return opts.out.encode(cmd.OutOrStdout(), results)

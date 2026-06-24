@@ -46,10 +46,23 @@ func TestHandleSearchDocs(t *testing.T) {
 		})
 		require.False(t, result.IsError)
 
-		var entries []grafanadocs.Entry
+		var entries []searchEntry
 		require.NoError(t, json.Unmarshal([]byte(textContent(t, result)), &entries))
 		require.Greater(t, len(entries), 0)
 		require.Contains(t, entries[0].Title, "lustering")
+	})
+
+	t.Run("json keys are snake_case", func(t *testing.T) {
+		result := callTool(t, s, s.handleSearchDocs, map[string]any{
+			"query": "clustering",
+		})
+		text := textContent(t, result)
+		require.Contains(t, text, `"title"`)
+		require.Contains(t, text, `"url"`)
+		require.Contains(t, text, `"description"`)
+		require.Contains(t, text, `"product"`)
+		require.NotContains(t, text, `"Title"`)
+		require.NotContains(t, text, `"URL"`)
 	})
 
 	t.Run("missing query returns error", func(t *testing.T) {
@@ -67,21 +80,21 @@ func TestHandleSearchDocs(t *testing.T) {
 	t.Run("product filter works", func(t *testing.T) {
 		result := callTool(t, s, s.handleSearchDocs, map[string]any{
 			"query":   "configuration",
-			"product": "Loki",
+			"product": "Grafana Loki",
 		})
 		require.False(t, result.IsError)
 
-		var entries []grafanadocs.Entry
+		var entries []searchEntry
 		require.NoError(t, json.Unmarshal([]byte(textContent(t, result)), &entries))
 		for _, e := range entries {
-			require.Contains(t, e.Product, "Loki")
+			require.Equal(t, "Grafana Loki", e.Product)
 		}
 	})
 
 	t.Run("no results returns guidance", func(t *testing.T) {
 		result := callTool(t, s, s.handleSearchDocs, map[string]any{
 			"query":   "xyznonexistent",
-			"product": "Tempo",
+			"product": "Grafana Tempo",
 		})
 		require.False(t, result.IsError)
 		text := textContent(t, result)
@@ -96,9 +109,18 @@ func TestHandleSearchDocs(t *testing.T) {
 		})
 		require.False(t, result.IsError)
 
-		var entries []grafanadocs.Entry
+		var entries []searchEntry
 		require.NoError(t, json.Unmarshal([]byte(textContent(t, result)), &entries))
 		require.Equal(t, 1, len(entries))
+	})
+
+	t.Run("negative limit rejected", func(t *testing.T) {
+		result := callTool(t, s, s.handleSearchDocs, map[string]any{
+			"query": "clustering",
+			"limit": float64(-1),
+		})
+		require.True(t, result.IsError)
+		require.Contains(t, textContent(t, result), "negative")
 	})
 }
 
@@ -123,6 +145,15 @@ func TestHandleGetDoc(t *testing.T) {
 		})
 		require.True(t, result.IsError)
 		require.Contains(t, textContent(t, result), "rejected")
+	})
+
+	t.Run("negative offset rejected", func(t *testing.T) {
+		result := callTool(t, s, s.handleGetDoc, map[string]any{
+			"url":    "https://grafana.com/docs/tempo/latest/configuration.md",
+			"offset": float64(-5),
+		})
+		require.True(t, result.IsError)
+		require.Contains(t, textContent(t, result), "negative")
 	})
 }
 
@@ -149,7 +180,7 @@ func TestHandleListProducts(t *testing.T) {
 	require.False(t, result.IsError)
 
 	var resp struct {
-		Products []grafanadocs.Product `json:"products"`
+		Products []productEntry `json:"products"`
 	}
 	require.NoError(t, json.Unmarshal([]byte(textContent(t, result)), &resp))
 	require.Equal(t, 2, len(resp.Products))
@@ -161,6 +192,40 @@ func TestHandleListProducts(t *testing.T) {
 	}
 	require.Contains(t, names, "Grafana Tempo")
 	require.Contains(t, names, "Grafana Loki")
+
+	t.Run("json keys are snake_case", func(t *testing.T) {
+		text := textContent(t, result)
+		require.Contains(t, text, `"name"`)
+		require.Contains(t, text, `"count"`)
+		require.NotContains(t, text, `"Name"`)
+		require.NotContains(t, text, `"Count"`)
+	})
+}
+
+func TestSafeInt(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   float64
+		want    int
+		wantErr bool
+	}{
+		{"positive", 5.0, 5, false},
+		{"zero", 0.0, 0, false},
+		{"truncates decimal", 5.9, 5, false},
+		{"negative", -1.0, 0, true},
+		{"large", 1000.0, 1000, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := safeInt(tt.input)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
+		})
+	}
 }
 
 // textContent extracts the text from the first content block.
