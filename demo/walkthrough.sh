@@ -15,7 +15,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DOCS="$REPO_ROOT/bin/docs"
 GCX="${GCX_BIN:-/tmp/gcx-demo}"
 AUTO=false
-DELAY=3
+DELAY=6
 
 [[ "${1:-}" == "--auto" ]] && AUTO=true
 
@@ -99,15 +99,15 @@ fi
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 title_card "hack-doc-server" \
-  "A docs-retrieval MCP server for Grafana Labs product documentation"
+  "Docs retrieval for AI agents — current, cheap, precise"
 
-narrate "AI agents need accurate, current documentation — not stale training data."
+narrate "Why not just prompt with docs? Three reasons:"
 echo ""
-narrate "hack-doc-server gives agents 4 tools to search, browse, and retrieve"
-narrate "from 2,000+ official Grafana docs pages. No embeddings. No server-side LLM."
-narrate "Just fast, deterministic, token-efficient retrieval."
+narrate "  1. Always current — fetches live docs, not stale training data"
+narrate "  2. Token-efficient — one section costs ~200 tokens, not 10,000"
+narrate "  3. Precise — search → outline → extract, like a human would"
 echo ""
-narrate "Let's see it in action."
+narrate "4 tools, 2,000+ Grafana docs pages. Let's see it."
 
 long_pause
 
