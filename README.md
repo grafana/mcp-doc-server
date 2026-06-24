@@ -1,17 +1,28 @@
 # hack-doc-server
 
-Hackathon project.
+A docs-retrieval MCP server for Grafana Labs product documentation.
 
-A Go module that gives AI agents version-aware access to Grafana Labs product
-documentation (v1: `latest`), built on the official `grafana.com/llms-full.txt` index and
-the `.md` docs endpoints.
+## Why an MCP server instead of prompting?
 
-**This module is designed to work with BOTH [gcx](https://github.com/grafana/gcx) and the
-[Grafana MCP server (mcp-grafana)](https://github.com/grafana/mcp-grafana).** A
-dependency-light public core holds the retrieval logic, with thin opt-in adapters: an MCP
-adapter (in mcp-grafana's `mark3labs/mcp-go` shape) and a cobra adapter (a `docs` command
-for gcx). It also runs standalone as its own MCP server. mcp-grafana and gcx today act on a
-live Grafana instance but expose no product docs — this module fills that gap.
+| Problem with prompting | What this solves |
+|------------------------|------------------|
+| Training data goes stale the day it's cut | Fetches live docs at query time — always current |
+| Loading "just in case" context burns tokens | Surgical retrieval — fetch one section, not the whole corpus |
+| The model guesses syntax from memory | The model *reads* the actual reference page, then acts |
+
+Four tools let an agent navigate 2,000+ Grafana docs pages the way a human would:
+search (`search_docs`), scan headings (`get_doc_outline`), extract the relevant section (`get_doc`), and
+list products (`list_products`). No embeddings, no server-side LLM, deterministic and cheap.
+
+## Architecture
+
+A dependency-light Go core (`pkg/grafanadocs`) with thin adapters for three surfaces:
+
+- **hack-doc-server** — standalone MCP server (stdio) or accessing Grafana docs
+- **[gcx](https://github.com/grafana/gcx)** — CLI subcommands (`gcx docs search|get|outline|products`)
+- **[mcp-grafana](https://github.com/grafana/mcp-grafana)** — doc tools alongside 30+ existing Grafana MCP tools
+
+All three import the core directly. None import each other's adapters.
 
 ## Usage
 
