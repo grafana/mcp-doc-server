@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "grafana-docs": {
-      "command": "${workspaceFolder}/bin/hack-doc-server",
+      "command": "${workspaceFolder}/bin/mcp-doc-server",
       "args": [],
       "env": {}
     }

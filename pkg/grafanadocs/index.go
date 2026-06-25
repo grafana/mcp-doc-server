@@ -48,7 +48,7 @@ func LoadIndex(ctx context.Context, rawURL string) (*Index, error) {
 	if err != nil {
 		return nil, fmt.Errorf("grafanadocs: build request: %w", err)
 	}
-	req.Header.Set("User-Agent", "hack-doc-server/0.1")
+	req.Header.Set("User-Agent", "mcp-doc-server/0.1")
 	resp, err := indexClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("grafanadocs: fetch index: %w", err)

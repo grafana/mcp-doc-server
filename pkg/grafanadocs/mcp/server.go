@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/grafana/hack-doc-server/pkg/grafanadocs"
+	"github.com/grafana/mcp-doc-server/pkg/grafanadocs"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -35,7 +35,7 @@ func (s *Server) Register(srv *server.MCPServer) {
 
 // NewMCPServer creates a fully configured MCP server with docs tools registered.
 func NewMCPServer(idx *grafanadocs.Index, version string) *server.MCPServer {
-	srv := server.NewMCPServer("hack-doc-server", version)
+	srv := server.NewMCPServer("mcp-doc-server", version)
 	s := New(idx)
 	s.Register(srv)
 	return srv

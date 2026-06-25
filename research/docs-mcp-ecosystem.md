@@ -1,7 +1,7 @@
 # Docs MCP server ecosystem (survey + lessons)
 
 A survey of the most popular and best-crafted documentation-related MCP servers on
-GitHub (as of June 2026), and what each teaches us about `hack-doc-server`'s design.
+GitHub (as of June 2026), and what each teaches us about `mcp-doc-server`'s design.
 See `SPECS.md` for the invariants referenced below (I1-I8) and `NOTES.md` for the
 decision log.
 
@@ -25,7 +25,7 @@ decision log.
 ### Tier 2 — vendor-backed / well-established
 
 - **Microsoft Learn MCP** ([MicrosoftDocs/mcp](https://github.com/microsoftdocs/mcp)) —
-  ~1.7K stars. Closest analog to hack-doc-server: single-vendor docs, no user-visible AI
+  ~1.7K stars. Closest analog to mcp-doc-server: single-vendor docs, no user-visible AI
   in the retrieval surface. Three tools: `microsoft_docs_search` (semantic),
   `microsoft_docs_fetch` (page → markdown), `microsoft_code_sample_search`. Remote HTTP
   (`https://learn.microsoft.com/api/mcp`), built into Visual Studio 2022+. TypeScript.
@@ -60,25 +60,25 @@ decision log.
 ## Recurring patterns
 
 - **Remote HTTP is the distribution winner.** Elastic, Microsoft Learn, Context7, and
-  GitMCP are all URL-as-config — install is one line in `mcp.json`. (hack-doc-server is
+  GitMCP are all URL-as-config — install is one line in `mcp.json`. (mcp-doc-server is
   stdio in v1 per `NOTES.md` 3; a hosted HTTP front end is the natural fast-follow over the
   same core.)
 - **`llms.txt` is becoming the convention.** GitMCP prioritizes it; mcpdoc is built
   entirely around it. Grafana's `llms-full.txt` is effectively this convention, which puts
-  hack-doc-server ahead of the curve (`NOTES.md` 1).
+  mcp-doc-server ahead of the curve (`NOTES.md` 1).
 - **Resolve → fetch, two or three steps.** Context7: `resolve-library-id` → `query-docs`.
-  hack-doc-server refines this into three: `list_products` / `search_docs` →
+  mcp-doc-server refines this into three: `list_products` / `search_docs` →
   `get_doc_outline` → `get_doc` slice, progressively narrowing before pulling content.
 - **Tool-count discipline.** Context7 (2), Microsoft Learn (3), GitMCP (5), Elastic (6).
-  hack-doc-server's 4 tools sit in the sweet spot; ecosystem guidance is that >10 tools
+  mcp-doc-server's 4 tools sit in the sweet spot; ecosystem guidance is that >10 tools
   slows agents down.
 - **Product / namespace filtering is expected.** Elastic filters by product+section,
-  Context7 by library. hack-doc-server's `list_products` + product-scoped `search_docs`
+  Context7 by library. mcp-doc-server's `list_products` + product-scoped `search_docs`
   maps to this (the 26 groups in `llms-full.txt` are the natural filter dimension).
 - **Index isolation.** Context7 and GitMCP keep their indexes server-side; only matched
   results reach the model — exactly invariant I1.
 
-## Lessons for hack-doc-server
+## Lessons for mcp-doc-server
 
 ### Validated decisions
 
@@ -96,7 +96,7 @@ decision log.
 ### Worth borrowing (later)
 
 - **A "related docs" tool.** Elastic's `find_related_docs` and Context7's topic scoping
-  address "what else exists around this?" hack-doc-server has `list_products` for top-level
+  address "what else exists around this?" mcp-doc-server has `list_products` for top-level
   discovery but nothing topic-relative. Not v1-critical, but a validated need.
 - **Navigation / parent-page context** in citations (Elastic's
   `analyze_document_structure` returns parent pages) — a cheap enrichment for
@@ -106,7 +106,7 @@ decision log.
 ### Risks / gaps the survey highlights
 
 - **Search quality without embeddings is the top risk.** Context7's success is largely
-  semantic. hack-doc-server's deterministic ranking (still an Open question in `SPECS.md`)
+  semantic. mcp-doc-server's deterministic ranking (still an Open question in `SPECS.md`)
   is the highest-priority design decision for perceived quality. Candidates: TF-IDF over
   title+description, exact-match boosting, product scoping as a pre-filter.
 - **Markdown cleanup is underspecified everywhere.** No surveyed server documents its
@@ -116,7 +116,7 @@ decision log.
 
 ## Positioning
 
-hack-doc-server sits in the **single-vendor, deterministic** quadrant — underserved, with
+mcp-doc-server sits in the **single-vendor, deterministic** quadrant — underserved, with
 Microsoft Learn as the closest analog (vendor docs, structured search, no user-visible AI;
 ~1.7K stars).
 
@@ -134,7 +134,7 @@ quadrantChart
     GitMCP: [0.15, 0.3]
     MicrosoftLearn: [0.85, 0.55]
     GroundedDocs: [0.3, 0.55]
-    hackDocServer: [0.8, 0.2]
+    mcpDocServer: [0.8, 0.2]
 ```
 
 Differentiators: bounded slicing (no one else does it well), the outline-then-fetch

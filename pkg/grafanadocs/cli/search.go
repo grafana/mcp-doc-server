@@ -9,7 +9,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/grafana/hack-doc-server/pkg/grafanadocs"
+	"github.com/grafana/mcp-doc-server/pkg/grafanadocs"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )

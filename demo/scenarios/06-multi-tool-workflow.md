@@ -1,7 +1,7 @@
 # Scenario: Multi-tool agentic workflow (mcp-grafana + docs)
 
 **Use case:** A coding or ops agent combines live instance data (via mcp-grafana)
-with documentation (via hack-doc-server) to complete a task that requires both
+with documentation (via mcp-doc-server) to complete a task that requires both
 current state awareness and correct syntax.
 
 **Problem:** An agent needs to add a new recording rule to an existing Grafana Mimir
@@ -24,7 +24,7 @@ Agent calls mcp-grafana: list_prometheus_rules()
 
 The agent now knows the namespace structure and existing rules.
 
-### Step 2: Look up recording rule syntax (hack-doc-server — docs)
+### Step 2: Look up recording rule syntax (mcp-doc-server — docs)
 
 ```bash
 docs search "recording rules configuration" --product mimir --limit 3
@@ -79,7 +79,7 @@ Agent calls mcp-grafana: push_prometheus_rules(namespace, group, rules)
 ┌───────────────────────────────────────────────────────────────┐
 │  AI Agent                                                      │
 ├───────────────────────┬───────────────────────────────────────┤
-│  mcp-grafana          │  hack-doc-server                      │
+│  mcp-grafana          │  mcp-doc-server                      │
 │  (live instance)      │  (documentation)                      │
 ├───────────────────────┼───────────────────────────────────────┤
 │  "What exists now?"   │  "What's the correct syntax?"         │
@@ -99,7 +99,7 @@ Together, they give an agent both **awareness** (what's running) and
 | Hallucinated field names that don't exist in latest | Duplicates existing rules it couldn't see |
 | No link to source for user verification | Can't apply the change |
 
-## Tools used (hack-doc-server)
+## Tools used (mcp-doc-server)
 
 | Tool | Purpose |
 |------|---------|

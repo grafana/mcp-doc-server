@@ -128,7 +128,7 @@ func FetchDoc(ctx context.Context, rawURL string) (*Doc, error) {
 		return nil, fmt.Errorf("grafanadocs: build request: %w", err)
 	}
 	req.Header.Set("Accept", "text/markdown")
-	req.Header.Set("User-Agent", "hack-doc-server/0.1")
+	req.Header.Set("User-Agent", "mcp-doc-server/0.1")
 
 	resp, err := httpClient.Do(req)
 	if err != nil {

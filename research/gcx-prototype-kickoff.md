@@ -1,4 +1,4 @@
-# Kickoff: Prototype a `gcx docs` command backed by hack-doc-server's core
+# Kickoff: Prototype a `gcx docs` command backed by mcp-doc-server's core
 
 Paste the prompt below into a fresh chat opened on the **gcx** repo. It is self-contained.
 
@@ -7,26 +7,26 @@ entries 16–17 for the full integration mapping and the latest gcx compatibilit
 
 ---
 
-## Task: Prototype a `gcx docs` command backed by hack-doc-server's core
+## Task: Prototype a `gcx docs` command backed by mcp-doc-server's core
 
 Create a **branch in gcx** that mounts a new `docs` command group powered by the
-`hack-doc-server` documentation core. This is a proof-of-concept integration, not a
+`mcp-doc-server` documentation core. This is a proof-of-concept integration, not a
 production merge — keep it on a branch.
 
 ### Repos
 
 - Working repo: `/Users/kim-nylander/Repositories/gcx` (module `github.com/grafana/gcx`)
-- Dependency: `/Users/kim-nylander/Repositories/hack-doc-server`
-  (module `github.com/grafana/hack-doc-server`) — DO NOT modify this repo.
+- Dependency: `/Users/kim-nylander/Repositories/mcp-doc-server`
+  (module `github.com/grafana/mcp-doc-server`) — DO NOT modify this repo.
 
 ### Wiring the dependency (it's unpublished)
 
 Add a local replace in gcx's `go.mod`, then `go mod tidy`:
 
-    require github.com/grafana/hack-doc-server v0.0.0
-    replace github.com/grafana/hack-doc-server => /Users/kim-nylander/Repositories/hack-doc-server
+    require github.com/grafana/mcp-doc-server v0.0.0
+    replace github.com/grafana/mcp-doc-server => /Users/kim-nylander/Repositories/mcp-doc-server
 
-Import ONLY the core: `github.com/grafana/hack-doc-server/pkg/grafanadocs`.
+Import ONLY the core: `github.com/grafana/mcp-doc-server/pkg/grafanadocs`.
 Do NOT import `pkg/grafanadocs/cli` — re-skin it with gcx's own output system instead.
 
 ### What the core gives you (plain Go, no framework deps)
@@ -41,7 +41,7 @@ Do NOT import `pkg/grafanadocs/cli` — re-skin it with gcx's own output system 
 
 ### Reference implementation to port
 
-`hack-doc-server/pkg/grafanadocs/cli/{command,search,get,outline,products}.go` already
+`mcp-doc-server/pkg/grafanadocs/cli/{command,search,get,outline,products}.go` already
 follows gcx's `opts` + `setup(flags)` + `Validate()` pattern. Use it as the blueprint.
 
 Command grammar to reproduce:
@@ -71,7 +71,7 @@ The reference adapter takes a pre-loaded `*grafanadocs.Index`. gcx must decide w
 load happens. Options: lazy-load on first `docs` subcommand run (recommended — avoids a
 network fetch on unrelated commands / `--help`), vs. eager at root. Pick one, document the
 rationale, and keep `get`/`outline` working without the index (they only need `FetchDoc`).
-Note `DOCS_INDEX_URL` as an override, matching hack-doc-server.
+Note `DOCS_INDEX_URL` as an override, matching mcp-doc-server.
 
 ### Mounting + agent metadata
 
@@ -100,9 +100,9 @@ consumed via a local replace (would point to a tagged module before any real mer
 
 ### Background context (don't re-derive)
 
-hack-doc-server compatibility with gcx was verified on 2026-06-23: cobra v1.10.2 matches;
+mcp-doc-server compatibility with gcx was verified on 2026-06-23: cobra v1.10.2 matches;
 pflag aligned to v1.0.10; gcx's options type was renamed `cmdio.Options` → `output.Options`
-(pkg `internal/output`); `--jq`/`--json` are additive. See hack-doc-server's
+(pkg `internal/output`); `--jq`/`--json` are additive. See mcp-doc-server's
 `research/gcx-integration-patterns.md` and `NOTES.md` entries 16–17 for the full mapping.
 
 One consideration: the core's `Entry`/`Heading`/`Product` types have no JSON tags (Go field

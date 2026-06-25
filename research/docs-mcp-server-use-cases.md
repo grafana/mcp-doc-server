@@ -2,7 +2,7 @@
 
 A docs MCP server exposes a body of documentation to AI agents through standard tools
 (`search_docs`, `get_doc`, `get_doc_outline`, `list_products`). This note captures the
-recurring use-case patterns and how `hack-doc-server` maps onto them.
+recurring use-case patterns and how `mcp-doc-server` maps onto them.
 
 ## Use cases
 
@@ -43,11 +43,11 @@ questions straight from the docs.
 The full index stays on the server; only matched results reach the model (invariant I1).
 This matters when the index itself is large or partly internal.
 
-## Where hack-doc-server fits
+## Where mcp-doc-server fits
 
 ```mermaid
 flowchart LR
-    Agent[AI Agent] -->|search_docs| Server[hack-doc-server MCP]
+    Agent[AI Agent] -->|search_docs| Server[mcp-doc-server MCP]
     Agent -->|get_doc_outline| Server
     Agent -->|get_doc slice| Server
     Server -->|parse| Index["llms-full.txt index"]

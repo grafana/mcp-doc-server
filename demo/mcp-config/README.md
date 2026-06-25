@@ -1,6 +1,6 @@
 # MCP Client Configuration
 
-Drop-in configurations to connect hack-doc-server to your AI client.
+Drop-in configurations to connect mcp-doc-server to your AI client.
 
 ## Cursor IDE
 
@@ -10,7 +10,7 @@ Add to your Cursor MCP settings (`.cursor/mcp.json` in your project or global co
 {
   "mcpServers": {
     "grafana-docs": {
-      "command": "/path/to/hack-doc-server/bin/hack-doc-server",
+      "command": "/path/to/mcp-doc-server/bin/mcp-doc-server",
       "args": [],
       "env": {}
     }
@@ -27,7 +27,7 @@ or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 {
   "mcpServers": {
     "grafana-docs": {
-      "command": "/path/to/hack-doc-server/bin/hack-doc-server",
+      "command": "/path/to/mcp-doc-server/bin/mcp-doc-server",
       "args": []
     }
   }
@@ -37,7 +37,7 @@ or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 ## Claude Code (CLI)
 
 ```bash
-claude mcp add grafana-docs /path/to/hack-doc-server/bin/hack-doc-server
+claude mcp add grafana-docs /path/to/mcp-doc-server/bin/mcp-doc-server
 ```
 
 ## Environment variables

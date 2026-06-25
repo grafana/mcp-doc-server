@@ -1,4 +1,4 @@
-# TESTS — hack-doc-server
+# TESTS — mcp-doc-server
 
 Test scenarios for the product contract in `SPECS.md`. Each scenario is
 **Setup / Action / Assertion**. Add scenarios for new functionality; do not remove a

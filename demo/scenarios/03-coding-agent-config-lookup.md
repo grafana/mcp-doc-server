@@ -92,7 +92,7 @@ resource "grafana_notification_policy" "main" {
 This scenario shows docs + live instance working together:
 
 ```
-1. hack-doc-server → "Here's the correct config syntax" (docs)
+1. mcp-doc-server → "Here's the correct config syntax" (docs)
 2. mcp-grafana    → "Here are your existing notification policies" (live data)
 3. Agent          → generates code that matches both the spec and current state
 ```

@@ -24,7 +24,7 @@ Google. It aims to implement the full MCP spec. Latest release: `v1.6.1` (May 20
   (see <https://go.dev/doc/devel/release#policy>).
 - License: Apache 2.0 for new contributions (existing code MIT).
 
-## Minimal server (stdio) — the shape hack-doc-server takes
+## Minimal server (stdio) — the shape mcp-doc-server takes
 
 ```go
 package main

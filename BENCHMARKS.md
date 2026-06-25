@@ -1,4 +1,4 @@
-# BENCHMARKS — hack-doc-server
+# BENCHMARKS — mcp-doc-server
 
 Performance and token-cost targets. **The values below are provisional placeholders**,
 not decided commitments — they exist to capture intent and will be confirmed (or replaced)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃  hack-doc-server — Automated Video Walkthrough                 ┃
+# ┃  mcp-doc-server — Automated Video Walkthrough                 ┃
 # ┃                                                                ┃
 # ┃  A self-running demo for screen capture. Hit Enter to advance  ┃
 # ┃  each step, or run with --auto for timed delays.               ┃
@@ -95,10 +95,10 @@ if [[ ! -x "$GCX" ]]; then
 fi
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# PART 1: What is hack-doc-server?
+# PART 1: What is mcp-doc-server?
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-title_card "hack-doc-server" \
+title_card "mcp-doc-server" \
   "Docs retrieval for AI agents — current, cheap, precise"
 
 narrate "Why not just prompt with docs? Three reasons:"
@@ -234,7 +234,7 @@ title_card "Part 3: mcp-grafana Integration" \
   "Doc tools registered alongside 30+ existing Grafana MCP tools"
 
 narrate "mcp-grafana is the official Grafana MCP server."
-narrate "It now includes 4 documentation tools from hack-doc-server:"
+narrate "It now includes 4 documentation tools from mcp-doc-server:"
 echo ""
 echo -e "  ${CYAN}search_docs${RESET}       Search Grafana documentation"
 echo -e "  ${CYAN}get_doc${RESET}           Fetch a documentation page"
@@ -250,7 +250,7 @@ section "Integration architecture" \
 
 echo -e "  ${BOLD}${WHITE}pkg/grafanadocs/${RESET}              ${DIM}← Public core (zero framework deps)${RESET}"
 echo ""
-echo -e "  ${MAGENTA}Consumer 1: hack-doc-server${RESET}   ${DIM}← MCP adapter on mark3labs/mcp-go${RESET}"
+echo -e "  ${MAGENTA}Consumer 1: mcp-doc-server${RESET}   ${DIM}← MCP adapter on mark3labs/mcp-go${RESET}"
 echo -e "    ${DIM}pkg/grafanadocs/mcp/server.go — raw AddTool() registration${RESET}"
 echo ""
 echo -e "  ${MAGENTA}Consumer 2: gcx${RESET}               ${DIM}← Cobra adapter with styled output${RESET}"
@@ -265,11 +265,11 @@ narrate "All three import pkg/grafanadocs directly. None import each other's ada
 pause
 
 section "The two-server complement" \
-  "mcp-grafana acts on a live instance. hack-doc-server provides the docs."
+  "mcp-grafana acts on a live instance. mcp-doc-server provides the docs."
 
 echo ""
 echo -e "  ${BOLD}${WHITE}┌─────────────────────┬───────────────────────────────────┐${RESET}"
-echo -e "  ${BOLD}${WHITE}│  mcp-grafana        │  hack-doc-server                  │${RESET}"
+echo -e "  ${BOLD}${WHITE}│  mcp-grafana        │  mcp-doc-server                  │${RESET}"
 echo -e "  ${BOLD}${WHITE}│  (live instance)     │  (documentation)                  │${RESET}"
 echo -e "  ${BOLD}${WHITE}├─────────────────────┼───────────────────────────────────┤${RESET}"
 echo -e "  ${WHITE}│  What exists now?   │  What's the correct syntax?       │${RESET}"
@@ -322,7 +322,7 @@ pause
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 title_card "Summary" \
-  "hack-doc-server — docs retrieval for AI agents"
+  "mcp-doc-server — docs retrieval for AI agents"
 
 echo -e "  ${BOLD}${WHITE}What we built${RESET}"
 echo -e "  ${WHITE}• 4 MCP tools: search, get, outline, products${RESET}"
@@ -337,11 +337,11 @@ echo -e "  ${WHITE}• Allowlisted fetches — only grafana.com/docs/ URLs${RESE
 echo -e "  ${WHITE}• Clean markdown — frontmatter, shortcodes, HTML stripped${RESET}"
 echo ""
 echo -e "  ${BOLD}${WHITE}Three surfaces, one core${RESET}"
-echo -e "  ${WHITE}• hack-doc-server (standalone MCP server, stdio)${RESET}"
+echo -e "  ${WHITE}• mcp-doc-server (standalone MCP server, stdio)${RESET}"
 echo -e "  ${WHITE}• gcx docs (CLI subcommands with styled output)${RESET}"
 echo -e "  ${WHITE}• mcp-grafana (doc tools alongside 30+ Grafana tools)${RESET}"
 echo ""
 echo -e "  ${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "  ${BOLD}${WHITE}  github.com/grafana/hack-doc-server${RESET}"
+echo -e "  ${BOLD}${WHITE}  github.com/grafana/mcp-doc-server${RESET}"
 echo -e "  ${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""

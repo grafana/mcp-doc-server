@@ -9,8 +9,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/grafana/hack-doc-server/pkg/grafanadocs"
-	mcpadapter "github.com/grafana/hack-doc-server/pkg/grafanadocs/mcp"
+	"github.com/grafana/mcp-doc-server/pkg/grafanadocs"
+	mcpadapter "github.com/grafana/mcp-doc-server/pkg/grafanadocs/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
@@ -25,7 +25,7 @@ func main() {
 		indexURL = u
 	}
 
-	fmt.Fprintf(os.Stderr, "hack-doc-server %s: loading index from %s\n", version, indexURL)
+	fmt.Fprintf(os.Stderr, "mcp-doc-server %s: loading index from %s\n", version, indexURL)
 
 	idx, err := grafanadocs.LoadIndex(ctx, indexURL)
 	if err != nil {

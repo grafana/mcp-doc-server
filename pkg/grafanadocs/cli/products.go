@@ -7,7 +7,7 @@ import (
 	"io"
 	"text/tabwriter"
 
-	"github.com/grafana/hack-doc-server/pkg/grafanadocs"
+	"github.com/grafana/mcp-doc-server/pkg/grafanadocs"
 	"github.com/spf13/cobra"
 )
 

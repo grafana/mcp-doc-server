@@ -11,8 +11,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/grafana/hack-doc-server/pkg/grafanadocs"
-	"github.com/grafana/hack-doc-server/pkg/grafanadocs/cli"
+	"github.com/grafana/mcp-doc-server/pkg/grafanadocs"
+	"github.com/grafana/mcp-doc-server/pkg/grafanadocs/cli"
 )
 
 func main() {

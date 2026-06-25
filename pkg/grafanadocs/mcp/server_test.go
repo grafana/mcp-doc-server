@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/grafana/hack-doc-server/pkg/grafanadocs"
+	"github.com/grafana/mcp-doc-server/pkg/grafanadocs"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/stretchr/testify/require"
 )
