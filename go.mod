@@ -1,4 +1,4 @@
-module github.com/grafana/hack-doc-server
+module github.com/grafana/mcp-doc-server
 
 go 1.25.5
 

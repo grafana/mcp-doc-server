@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# hack-doc-server demo — runs the standalone CLI to showcase all 4 tools.
+# mcp-doc-server demo — runs the standalone CLI to showcase all 4 tools.
 # Requires: go build -o bin/docs ./cmd/docs/
 set -euo pipefail
 

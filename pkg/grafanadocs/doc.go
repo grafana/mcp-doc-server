@@ -6,6 +6,6 @@
 // sectioning — all without server-side inference.
 //
 // This package is the public core intended for import by grafana/mcp-grafana,
-// grafana/gcx, and the standalone hack-doc-server. It has zero framework
+// grafana/gcx, and the standalone mcp-doc-server. It has zero framework
 // dependencies (no MCP SDK, no cobra).
 package grafanadocs

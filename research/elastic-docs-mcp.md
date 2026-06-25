@@ -2,7 +2,7 @@
 
 Notes on Elastic's documentation MCP server, shipped as part of
 [`docs-builder`](https://github.com/elastic/docs-builder/blob/main/docs/mcp/index.md),
-and how it compares to `hack-doc-server`.
+and how it compares to `mcp-doc-server`.
 
 ## What it is
 
@@ -49,9 +49,9 @@ Elastic suggests the MCP Inspector:
 npx @modelcontextprotocol/inspector --url https://www.elastic.co/docs/_mcp/
 ```
 
-## Comparison to hack-doc-server
+## Comparison to mcp-doc-server
 
-| Dimension | Elastic docs MCP | hack-doc-server (per SPECS.md) |
+| Dimension | Elastic docs MCP | mcp-doc-server (per SPECS.md) |
 |---|---|---|
 | Transport | Hosted Streamable HTTP | Local stdio binary |
 | Search | Semantic (embeddings/AI) | Deterministic, no LLM/embeddings (I2) |
@@ -63,14 +63,14 @@ npx @modelcontextprotocol/inspector --url https://www.elastic.co/docs/_mcp/
 
 ## Things worth borrowing
 
-- **`find_related_docs`** maps to a gap: `hack-doc-server` has `list_products` for
+- **`find_related_docs`** maps to a gap: `mcp-doc-server` has `list_products` for
   top-level discovery but nothing for "related to this topic."
 - **`analyze_document_structure`** is close to the planned `get_doc_outline`; including
   parent pages / navigation context is a useful idea for citations.
 - **Hosted HTTP option** — v1 is stdio, but Elastic shows demand for a zero-install hosted
   endpoint.
 
-## Things hack-doc-server does differently (deliberately)
+## Things mcp-doc-server does differently (deliberately)
 
 - **No server-side inference** (I2) vs. Elastic leaning on AI summaries and semantic search.
   Cheaper and deterministic, but won't match semantic recall without a ranking strategy
@@ -84,7 +84,7 @@ npx @modelcontextprotocol/inspector --url https://www.elastic.co/docs/_mcp/
 
 Fabrizio Ferri Benedetti (Elastic) wrote about building a docs MCP server
 ([post](https://passo.uno/mcp-server-docs-tooling/), Oct 2025). Key takeaways that
-reinforce hack-doc-server decisions:
+reinforce mcp-doc-server decisions:
 
 - **Deterministic tools + LLM reasoning is a "killer combo."** His experience with
   vale-mcp-server confirms that giving agents precise, structured context and letting the

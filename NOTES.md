@@ -1,4 +1,4 @@
-# NOTES — hack-doc-server
+# NOTES — mcp-doc-server
 
 Append-only, dated design-decision log. Never delete or edit an existing entry; if a
 decision is reversed, add an `*Addendum (YYYY-MM-DD):*` line to the original entry and
@@ -88,7 +88,7 @@ only what is decided and tracks the rest under **Open questions**, which close a
 **Decision:** Ship the retrieval logic as a **public, dependency-light Go package** (the
 core) with thin, opt-in adapters: an **MCP adapter** (targets `github.com/mark3labs/mcp-go`,
 the SDK mcp-grafana uses — observed v0.46.0) and a **cobra adapter** (a `docs` command,
-optionally a gcx agent skill). Our standalone `hack-doc-server` and `grafana/mcp-grafana`
+optionally a gcx agent skill). Our standalone `mcp-doc-server` and `grafana/mcp-grafana`
 consume the MCP adapter; `grafana/gcx` consumes the cobra adapter.
 **Rationale:** Confirmed mcp-grafana is built on mark3labs/mcp-go with `{Tool, Handler}`
 tools, while gcx is a cobra CLI with no MCP dependency. A layered core lets both reuse the
@@ -106,7 +106,7 @@ the "consumers import the MCP adapter" model — both `grafana/mcp-grafana` and 
 import the **core only** (`pkg/grafanadocs`), which has no mcp-go dependency. The adapter's
 mcp-go version (v0.55.0) is therefore free to diverge from mcp-grafana's (v0.46.0) without
 any import conflict, as confirmed by the working mcp-grafana integration (entry 19). The
-adapter's version only matters to the standalone `hack-doc-server` binary.
+adapter's version only matters to the standalone `mcp-doc-server` binary.
 
 ## 11. Consumer integration model: consumers write their own wrappers
 *Added: 2026-06-22*
@@ -255,7 +255,7 @@ cannot. The findings above close two open questions in SPECS.md and refine the g
 for future consumers.
 **Consequence:** SPECS.md open questions for "gcx integration form" and "Index lifecycle in
 consumers" moved to Closed. Core data types documented in SPECS.md to make the
-serialization-agnostic design explicit. No changes to hack-doc-server code — all fixes
+serialization-agnostic design explicit. No changes to mcp-doc-server code — all fixes
 were in the gcx branch.
 
 ## 19. mcp-grafana integration validated: core-only import, MustTool wrappers
@@ -287,12 +287,12 @@ model against the second primary consumer. Key findings:
   param types drive tool schema generation; commas inside tag descriptions must be escaped
   (`\\,`) per mcp-grafana's custom jsonschema linter.
 - **go.mod uses a local `replace`.** For now the dependency is wired via
-  `replace github.com/grafana/hack-doc-server => <local path>` pending a published module.
+  `replace github.com/grafana/mcp-doc-server => <local path>` pending a published module.
 **Rationale:** A second real integration confirms the core API is the durable contract and
 that consumers can adopt their own framework conventions without the core imposing any. The
 sloglint finding is a concrete, transferable constraint for anyone writing mcp-grafana tools.
 **Consequence:** SPECS.md gains a "mcp-grafana integration form" closed question; entry 10
-gets an addendum about version independence. No changes to hack-doc-server code — all work
+gets an addendum about version independence. No changes to mcp-doc-server code — all work
 was in mcp-grafana (`tools/docs.go`, `tools/docs_unit_test.go`, `cmd/mcp-grafana/main.go`,
 `go.mod`).
 
@@ -402,7 +402,7 @@ code-path audit:
    arguments contained `>`. Replaced with two non-greedy alternatives:
    `\{\{<.*?>}}` and `\{\{%.*?%}}`.
 8. **User-Agent header.** All outbound HTTP requests (`httpClient`, `indexClient`) now
-   include `User-Agent: hack-doc-server/0.1` to prevent CDN/WAF throttling (I22).
+   include `User-Agent: mcp-doc-server/0.1` to prevent CDN/WAF throttling (I22).
 9. **`collapseBlankLines` optimization.** Replaced the `for Contains + ReplaceAll` loop
    (O(n*m) worst case with hundreds of consecutive blank lines) with a single-pass
    `strings.Builder` approach.

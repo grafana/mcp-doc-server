@@ -1,4 +1,4 @@
-# hack-doc-server Demo
+# mcp-doc-server Demo
 
 A docs-retrieval MCP server that gives AI agents version-aware access to Grafana Labs
 product documentation — no embeddings, no server-side LLM, just fast deterministic
@@ -21,7 +21,7 @@ search and bounded retrieval from the official index.
 └────────────┬────────────────────────────────────────────────┘
              │ MCP (stdio)
 ┌────────────▼────────────────────────────────────────────────┐
-│  hack-doc-server                                            │
+│  mcp-doc-server                                            │
 │  ┌──────────────────┐  ┌─────────────────────────────────┐ │
 │  │ search_docs      │  │ get_doc (bounded, section-aware) │ │
 │  │ list_products    │  │ get_doc_outline                  │ │
@@ -39,15 +39,15 @@ search and bounded retrieval from the official index.
 ### Build
 
 ```bash
-cd /path/to/hack-doc-server
-go build -o bin/hack-doc-server ./cmd/hack-doc-server/
+cd /path/to/mcp-doc-server
+go build -o bin/mcp-doc-server ./cmd/mcp-doc-server/
 go build -o bin/docs ./cmd/docs/
 ```
 
 ### Run the MCP server (stdio)
 
 ```bash
-./bin/hack-doc-server
+./bin/mcp-doc-server
 # Loads the index, then accepts MCP JSON-RPC on stdin/stdout
 ```
 

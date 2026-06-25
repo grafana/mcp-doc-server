@@ -2,7 +2,7 @@
 
 Notes on the [MCP Inspector](https://github.com/modelcontextprotocol/inspector) — the
 official visual testing and debugging tool for MCP servers — and how it fits into
-developing and verifying `hack-doc-server`.
+developing and verifying `mcp-doc-server`.
 
 ## What it is
 
@@ -24,17 +24,17 @@ Requires Node.js `^22.7.5`. Current release: `0.22.0` (Jun 2026).
 - **CLI mode** (`--cli`) — programmatic/scriptable, JSON output. Ideal for automation,
   CI/CD, and tight feedback loops with coding assistants.
 
-## How we use it with hack-doc-server
+## How we use it with mcp-doc-server
 
-`hack-doc-server` is a Go **stdio** server, so the relevant pattern is launching the
+`mcp-doc-server` is a Go **stdio** server, so the relevant pattern is launching the
 inspector against the built binary:
 
 ```bash
 # UI mode against the built binary
-npx @modelcontextprotocol/inspector ./hack-doc-server
+npx @modelcontextprotocol/inspector ./mcp-doc-server
 
 # Pass env vars / args (everything after the binary goes to our server)
-npx @modelcontextprotocol/inspector -e LOG_LEVEL=debug -- ./hack-doc-server --some-flag
+npx @modelcontextprotocol/inspector -e LOG_LEVEL=debug -- ./mcp-doc-server --some-flag
 ```
 
 CLI mode is the most useful for scripted verification of our four tools
@@ -42,14 +42,14 @@ CLI mode is the most useful for scripted verification of our four tools
 
 ```bash
 # List the tools our server exposes
-npx @modelcontextprotocol/inspector --cli ./hack-doc-server --method tools/list
+npx @modelcontextprotocol/inspector --cli ./mcp-doc-server --method tools/list
 
 # Exercise search_docs
-npx @modelcontextprotocol/inspector --cli ./hack-doc-server \
+npx @modelcontextprotocol/inspector --cli ./mcp-doc-server \
   --method tools/call --tool-name search_docs --tool-arg query="alerting"
 
 # Fetch a bounded doc slice
-npx @modelcontextprotocol/inspector --cli ./hack-doc-server \
+npx @modelcontextprotocol/inspector --cli ./mcp-doc-server \
   --method tools/call --tool-name get_doc \
   --tool-arg 'options={"url":"https://grafana.com/docs/...","section":"..."}'
 ```
@@ -72,7 +72,7 @@ can run in CI.
 
 ## Relevance to this project
 
-- **Primary verification tool** for the MCP layer (`internal/mcp`, `cmd/hack-doc-server`)
+- **Primary verification tool** for the MCP layer (`internal/mcp`, `cmd/mcp-doc-server`)
   before wiring the server into a real client like Cursor.
 - **CLI mode in CI** can assert tool schemas and outputs, supporting the reproducibility
   goal in `SPECS.md` (tool contracts hold against a live server, not just on paper).

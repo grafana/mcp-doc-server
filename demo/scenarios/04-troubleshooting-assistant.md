@@ -96,7 +96,7 @@ docs products
 | Google search | Returns HTML with nav chrome, ads, SEO filler |
 | Scraping grafana.com | Unstructured, breaks on layout changes |
 | Training data | May reference old config keys or removed features |
-| **hack-doc-server** | Clean markdown, section-targeted, always current |
+| **mcp-doc-server** | Clean markdown, section-targeted, always current |
 
 ## Tools used
 

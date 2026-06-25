@@ -1,4 +1,4 @@
-# AGENTS — spec-driven development for hack-doc-server
+# AGENTS — spec-driven development for mcp-doc-server
 
 This repo follows **spec-driven development (SDD)**, adapted from
 [mattdurham/bob](https://github.com/mattdurham/bob). Specs are the source of truth;

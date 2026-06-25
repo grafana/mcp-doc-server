@@ -1,6 +1,6 @@
 # Demo Scenarios
 
-Real-world agent workflows showing hack-doc-server tools in action.
+Real-world agent workflows showing mcp-doc-server tools in action.
 Each scenario shows the complete tool call sequence an agent would use.
 
 ## Scenarios

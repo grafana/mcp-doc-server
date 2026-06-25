@@ -20,7 +20,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/grafana/hack-doc-server/pkg/grafanadocs"
+	"github.com/grafana/mcp-doc-server/pkg/grafanadocs"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v3"

@@ -1,4 +1,4 @@
-# hack-doc-server
+# mcp-doc-server
 
 A docs-retrieval MCP server for Grafana Labs product documentation.
 
@@ -18,7 +18,7 @@ list products (`list_products`). No embeddings, no server-side LLM, deterministi
 
 A dependency-light Go core (`pkg/grafanadocs`) with thin adapters for three surfaces:
 
-- **hack-doc-server** — standalone MCP server (stdio) or accessing Grafana docs
+- **mcp-doc-server** — standalone MCP server (stdio) for accessing Grafana docs
 - **[gcx](https://github.com/grafana/gcx)** — CLI subcommands (`gcx docs search|get|outline|products`)
 - **[mcp-grafana](https://github.com/grafana/mcp-grafana)** — doc tools alongside 30+ existing Grafana MCP tools
 
@@ -36,7 +36,7 @@ idx, err := grafanadocs.LoadIndex(ctx, grafanadocs.DefaultIndexURL)
 ### Standalone MCP server
 
 ```bash
-go run ./cmd/hack-doc-server   # stdio; set DOCS_INDEX_URL to override the index
+go run ./cmd/mcp-doc-server   # stdio; set DOCS_INDEX_URL to override the index
 ```
 
 ### Standalone CLI
@@ -56,7 +56,7 @@ go run ./cmd/docs products
 `pkg/grafanadocs/cli` exposes a mountable `docs` command group. In gcx's root command:
 
 ```go
-import "github.com/grafana/hack-doc-server/pkg/grafanadocs/cli"
+import "github.com/grafana/mcp-doc-server/pkg/grafanadocs/cli"
 
 rootCmd.AddCommand(cli.Command(idx)) // adds `gcx docs search|get|outline|products`
 ```
@@ -74,7 +74,7 @@ This repo's `pkg/grafanadocs/mcp` adapter shows the exact mapping and can be reg
 directly:
 
 ```go
-import mcpadapter "github.com/grafana/hack-doc-server/pkg/grafanadocs/mcp"
+import mcpadapter "github.com/grafana/mcp-doc-server/pkg/grafanadocs/mcp"
 
 mcpadapter.New(idx).Register(srv) // adds search_docs, get_doc, get_doc_outline, list_products
 ```

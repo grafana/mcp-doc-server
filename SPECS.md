@@ -1,6 +1,6 @@
-# SPECS — hack-doc-server
+# SPECS — mcp-doc-server
 
-Source of truth for the behavior of `hack-doc-server`: a Go MCP server that gives
+Source of truth for the behavior of `mcp-doc-server`: a Go MCP server that gives
 AI agents version-aware access to Grafana Labs product documentation.
 
 This is a **living document**. It captures what we have actually decided so far and
@@ -102,7 +102,7 @@ own tags. This keeps the core free of framework opinions.
 ### Config & runtime
 - **Go version:** 1.24+ (floor); mcp-grafana currently uses 1.26.3.
 - **`mcp-go` version:** v0.55.0 (standalone server uses latest; core has no mcp-go dep).
-- **Module path:** `github.com/grafana/hack-doc-server` (hackathon; eventual home TBD).
+- **Module path:** `github.com/grafana/mcp-doc-server`.
 - **Transport:** stdio in v1.
 - **License:** Apache 2.0 (matches mcp-grafana and gcx).
 - **HTTP timeouts:** 30s for doc fetches, 60s for index load.
@@ -182,7 +182,7 @@ own tags. This keeps the core free of framework opinions.
   URL and the URL after `.md` suffix transformation, preventing path manipulation through
   the transform.
 - **I22 — User-Agent header.** All outbound HTTP requests include a `User-Agent:
-  hack-doc-server/0.1` header to identify the client to CDNs and WAFs.
+  mcp-doc-server/0.1` header to identify the client to CDNs and WAFs.
 - **I23 — Unclosed fence safety.** If a fenced code block is never closed (e.g. from
   body-size truncation), `extractCodeBlocks` treats the partial block as a protected code
   block in its original position rather than re-ordering it to the end.
@@ -261,7 +261,7 @@ its own agent annotations.
   validation errors and empty-result guidance.
 - **`pkg/grafanadocs/cli`** (cobra adapter): mountable `docs` command group for gcx /
   standalone CLI use; opts + custom text codecs + structured (json/yaml/agents) output.
-- **`cmd/hack-doc-server`**: standalone MCP server (stdio, loads index at startup).
+- **`cmd/mcp-doc-server`**: standalone MCP server (stdio, loads index at startup).
 - **`cmd/docs`**: standalone CLI running the cobra adapter (loads index on demand;
   help/completion skip the fetch).
 
@@ -271,7 +271,7 @@ Supporting research is in the [`research/`](research/) folder:
 
 - [`elastic-docs-mcp.md`](research/elastic-docs-mcp.md) — Elastic's hosted docs MCP
   server (`https://www.elastic.co/docs/_mcp/`): 6 tools including semantic search, AI
-  summaries, and coherence/inconsistency checks. Comparison table against hack-doc-server
+  summaries, and coherence/inconsistency checks. Comparison table against mcp-doc-server
   invariants; ideas worth borrowing (`find_related_docs`, navigation context, hosted HTTP
   option) and deliberate differences (no server-side inference, bounded slices, version
   awareness).
@@ -279,7 +279,7 @@ Supporting research is in the [`research/`](research/) folder:
   use-case patterns for docs MCP servers (grounding, version-aware lookups, citations,
   token-efficient retrieval, product discovery, deterministic retrieval in agentic
   workflows, onboarding/troubleshooting assistants, server-side index isolation) mapped to
-  hack-doc-server invariants and tools.
+  mcp-doc-server invariants and tools.
 
 ## Reproducibility (the goal)
 

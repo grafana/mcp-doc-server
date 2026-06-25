@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "grafana-docs": {
-      "command": "/path/to/hack-doc-server/bin/hack-doc-server",
+      "command": "/path/to/mcp-doc-server/bin/mcp-doc-server",
       "args": []
     }
   }

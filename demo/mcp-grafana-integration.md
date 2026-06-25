@@ -127,5 +127,5 @@ github.com/grafana/mcp-grafana/
 │   ├── docs.go              ← Tool implementations + registration
 │   ├── docs_unit_test.go    ← Unit tests
 │   └── ...                  ← 30+ other tool files
-└── go.mod                   ← depends on github.com/grafana/hack-doc-server
+└── go.mod                   ← depends on github.com/grafana/mcp-doc-server
 ```
