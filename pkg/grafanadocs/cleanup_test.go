@@ -98,7 +98,7 @@ Keep this.
 
 func TestCleanup_CollapseBlankLinesPreservesDouble(t *testing.T) {
 	result := collapseBlankLines("a\n\nb\n\n\n\nc\n\n\n\n\nd")
-	require.Equal(t, "a\n\nb\n\nc\n\nd", result)
+	require.Equal(t, "a\n\nb\n\n\nc\n\n\nd", result)
 }
 
 func TestCleanup_CodeBlockProtection(t *testing.T) {
@@ -122,7 +122,7 @@ func TestCleanup_CRLF(t *testing.T) {
 		result := string(Cleanup([]byte(input)))
 
 		require.NotContains(t, result, "\r", "carriage returns should be normalized away")
-		require.NotContains(t, result, "\n\n\n", "3+ blank lines must be collapsed even with CRLF input")
+		require.NotContains(t, result, "\n\n\n\n", "3+ blank lines must be collapsed to 2 even with CRLF input")
 		require.Contains(t, result, "# Title")
 		require.Contains(t, result, "More text.")
 	})

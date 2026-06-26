@@ -158,14 +158,7 @@ func TestProductNameCleaning(t *testing.T) {
 
 // trimDocSuffix mirrors the logic in LoadIndexFromReader.
 func trimDocSuffix(s string) string {
-	s = trimSuffix(s, " documentation")
-	s = trimSuffix(s, " Documentation")
-	return s
-}
-
-func trimSuffix(s, suffix string) string {
-	if len(s) > len(suffix) && s[len(s)-len(suffix):] == suffix {
-		return s[:len(s)-len(suffix)]
-	}
+	s = strings.TrimSuffix(s, " documentation")
+	s = strings.TrimSuffix(s, " Documentation")
 	return s
 }

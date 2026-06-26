@@ -67,6 +67,29 @@ func NeedsIndex(args []string) bool {
 	return false
 }
 
+// Wrapper types for JSON/YAML output. The core types (grafanadocs.Entry,
+// grafanadocs.Heading, grafanadocs.Product) carry no json tags by design — the
+// CLI adapter owns the wire format, matching the MCP adapter's snake_case keys
+// for cross-surface consistency (I15).
+
+type cliEntry struct {
+	Title       string `json:"title" yaml:"title"`
+	URL         string `json:"url" yaml:"url"`
+	Description string `json:"description" yaml:"description"`
+	Product     string `json:"product" yaml:"product"`
+}
+
+type cliHeading struct {
+	Level int    `json:"level" yaml:"level"`
+	Text  string `json:"text" yaml:"text"`
+	Line  int    `json:"line" yaml:"line"`
+}
+
+type cliProduct struct {
+	Name  string `json:"name" yaml:"name"`
+	Count int    `json:"count" yaml:"count"`
+}
+
 // textCodec renders a value as human-readable text for the default format.
 type textCodec interface {
 	Encode(w io.Writer, v any) error

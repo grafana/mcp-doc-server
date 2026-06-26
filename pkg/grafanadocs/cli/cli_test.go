@@ -69,13 +69,17 @@ func TestSearchCommand(t *testing.T) {
 			wantStderr: "No results found",
 		},
 		{
-			name: "json output is valid and structured",
+			name: "json output is valid and uses snake_case keys",
 			args: []string{"search", "clustering", "-o", "json"},
 			checkStdout: func(t *testing.T, stdout string) {
 				var entries []grafanadocs.Entry
 				require.NoError(t, json.Unmarshal([]byte(stdout), &entries))
 				require.NotEmpty(t, entries)
 				require.True(t, strings.Count(stdout, "\n") > 1, "json should be indented")
+				require.Contains(t, stdout, `"title"`)
+				require.Contains(t, stdout, `"url"`)
+				require.NotContains(t, stdout, `"Title"`)
+				require.NotContains(t, stdout, `"URL"`)
 			},
 		},
 		{
@@ -167,7 +171,7 @@ func TestGetCommandGuards(t *testing.T) {
 func TestCodecs(t *testing.T) {
 	t.Run("search table renders rows", func(t *testing.T) {
 		var buf bytes.Buffer
-		err := searchTableCodec{}.Encode(&buf, []grafanadocs.Entry{
+		err := searchTableCodec{}.Encode(&buf, []cliEntry{
 			{Title: "Clustering", Product: "Agent", URL: "https://grafana.com/docs/agent/x.md"},
 		})
 		require.NoError(t, err)
@@ -185,7 +189,7 @@ func TestCodecs(t *testing.T) {
 	t.Run("outline table renders headings", func(t *testing.T) {
 		var buf bytes.Buffer
 		err := outlineTableCodec{}.Encode(&buf, outlineResult{
-			Headings: []grafanadocs.Heading{{Level: 2, Text: "Setup", Line: 5}},
+			Headings: []cliHeading{{Level: 2, Text: "Setup", Line: 5}},
 		})
 		require.NoError(t, err)
 		require.Contains(t, buf.String(), "Setup")
@@ -195,7 +199,7 @@ func TestCodecs(t *testing.T) {
 	t.Run("products table renders rows", func(t *testing.T) {
 		var buf bytes.Buffer
 		err := productsTableCodec{}.Encode(&buf, productsResult{
-			Products: []grafanadocs.Product{{Name: "Tempo", Count: 12}},
+			Products: []cliProduct{{Name: "Tempo", Count: 12}},
 		})
 		require.NoError(t, err)
 		require.Contains(t, buf.String(), "Tempo")
