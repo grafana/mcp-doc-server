@@ -18,6 +18,7 @@ type getOpts struct {
 	section string
 	offset  int
 	limit   int
+	rawURL  string
 }
 
 func (o *getOpts) setup(flags *pflag.FlagSet) {
@@ -28,8 +29,8 @@ func (o *getOpts) setup(flags *pflag.FlagSet) {
 	flags.IntVar(&o.limit, "limit", 0, "Maximum lines to return (0 = default)")
 }
 
-func (o *getOpts) Validate(rawURL string) error {
-	if strings.TrimSpace(rawURL) == "" {
+func (o *getOpts) Validate() error {
+	if strings.TrimSpace(o.rawURL) == "" {
 		return errors.New("url is required")
 	}
 	return nil
@@ -60,11 +61,11 @@ func getCommand() *cobra.Command {
   gcx docs get https://grafana.com/docs/tempo/latest/ --offset 80 --limit 80`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rawURL := args[0]
-			if err := opts.Validate(rawURL); err != nil {
+			opts.rawURL = args[0]
+			if err := opts.Validate(); err != nil {
 				return err
 			}
-			doc, err := grafanadocs.FetchDoc(cmd.Context(), rawURL)
+			doc, err := grafanadocs.FetchDoc(cmd.Context(), opts.rawURL)
 			if err != nil {
 				return err
 			}
@@ -74,7 +75,7 @@ func getCommand() *cobra.Command {
 				Limit:   opts.limit,
 			})
 			if res.Content == "" && opts.section != "" {
-				return fmt.Errorf("section %q not found; run 'gcx docs outline %s' to see available headings", opts.section, rawURL)
+				return fmt.Errorf("section %q not found; run 'gcx docs outline %s' to see available headings", opts.section, opts.rawURL)
 			}
 			return opts.out.encode(cmd.OutOrStdout(), getResult{
 				Content:       res.Content,

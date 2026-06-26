@@ -18,6 +18,7 @@ type searchOpts struct {
 	out     output
 	product string
 	limit   int
+	query   string
 }
 
 func (o *searchOpts) setup(flags *pflag.FlagSet) {
@@ -27,8 +28,8 @@ func (o *searchOpts) setup(flags *pflag.FlagSet) {
 	flags.IntVar(&o.limit, "limit", 5, "Maximum number of results")
 }
 
-func (o *searchOpts) Validate(query string) error {
-	if strings.TrimSpace(query) == "" {
+func (o *searchOpts) Validate() error {
+	if strings.TrimSpace(o.query) == "" {
 		return errors.New("query is required")
 	}
 	return nil
@@ -48,13 +49,13 @@ func searchCommand(idx *grafanadocs.Index) *cobra.Command {
 
   # Return more results as JSON
   gcx docs search dashboards --limit 10 -o json`,
-		Args: cobra.ArbitraryArgs,
+		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			query := strings.Join(args, " ")
-			if err := opts.Validate(query); err != nil {
+			opts.query = strings.Join(args, " ")
+			if err := opts.Validate(); err != nil {
 				return err
 			}
-			results := grafanadocs.Search(idx, query, grafanadocs.SearchOpts{
+			results := grafanadocs.Search(idx, opts.query, grafanadocs.SearchOpts{
 				Product: opts.product,
 				Limit:   opts.limit,
 			})
@@ -62,7 +63,16 @@ func searchCommand(idx *grafanadocs.Index) *cobra.Command {
 				// stderr so stdout stays parseable (I13)
 				_, _ = fmt.Fprintln(cmd.ErrOrStderr(), emptySearchHint(opts.product))
 			}
-			return opts.out.encode(cmd.OutOrStdout(), results)
+			entries := make([]cliEntry, len(results))
+			for i, e := range results {
+				entries[i] = cliEntry{
+					Title:       e.Title,
+					URL:         e.URL,
+					Description: e.Description,
+					Product:     e.Product,
+				}
+			}
+			return opts.out.encode(cmd.OutOrStdout(), entries)
 		},
 	}
 	opts.setup(cmd.Flags())
@@ -80,9 +90,9 @@ func emptySearchHint(product string) string {
 type searchTableCodec struct{}
 
 func (searchTableCodec) Encode(w io.Writer, v any) error {
-	entries, ok := v.([]grafanadocs.Entry)
+	entries, ok := v.([]cliEntry)
 	if !ok {
-		return fmt.Errorf("searchTableCodec: expected []grafanadocs.Entry, got %T", v)
+		return fmt.Errorf("searchTableCodec: expected []cliEntry, got %T", v)
 	}
 	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
 	// Writes to tabwriter are buffered; the only meaningful error surfaces at Flush.

@@ -25,10 +25,12 @@ func Cleanup(raw []byte) []byte {
 	// frontmatter delimiter only on a second pass — breaking idempotency).
 	s = strings.TrimSpace(s)
 	s = stripFrontmatter(s)
+	s = strings.TrimSpace(s)
 
 	s, blocks := extractCodeBlocks(s)
 	for {
 		prev := s
+		s = strings.TrimSpace(s)
 		s = stripFrontmatter(s)
 		s = stripShortcodes(s)
 		s = stripHTMLComments(s)
@@ -43,23 +45,32 @@ func Cleanup(raw []byte) []byte {
 }
 
 // stripFrontmatter removes YAML (---) or TOML (+++) frontmatter at the start.
-// The closing delimiter must appear at the start of a line to avoid matching
-// a delimiter that appears mid-line inside a frontmatter value.
+// The closing delimiter must appear at the start of a line AND be the complete
+// line (followed by \n or end-of-string) to avoid matching a delimiter that
+// appears mid-line inside a frontmatter value or on a line with trailing content.
 func stripFrontmatter(s string) string {
 	for _, delim := range []string{"---", "+++"} {
 		if !strings.HasPrefix(s, delim) {
 			continue
 		}
 		rest := s[len(delim):]
-		end := strings.Index(rest, "\n"+delim)
-		if end < 0 {
-			return s
+		needle := "\n" + delim
+		pos := 0
+		for {
+			idx := strings.Index(rest[pos:], needle)
+			if idx < 0 {
+				return s
+			}
+			end := pos + idx
+			after := rest[end+len(needle):]
+			if len(after) == 0 || after[0] == '\n' {
+				if len(after) > 0 {
+					return after[1:]
+				}
+				return after
+			}
+			pos = end + 1
 		}
-		after := rest[end+1+len(delim):]
-		if len(after) > 0 && after[0] == '\n' {
-			return after[1:]
-		}
-		return after
 	}
 	return s
 }
@@ -144,7 +155,7 @@ func collapseBlankLines(s string) string {
 		} else {
 			consecutive = 0
 		}
-		if consecutive <= 2 {
+		if consecutive <= 3 {
 			b.WriteByte(s[i])
 		}
 	}

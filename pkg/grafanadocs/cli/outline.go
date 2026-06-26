@@ -15,7 +15,8 @@ import (
 )
 
 type outlineOpts struct {
-	out output
+	out    output
+	rawURL string
 }
 
 func (o *outlineOpts) setup(flags *pflag.FlagSet) {
@@ -23,8 +24,8 @@ func (o *outlineOpts) setup(flags *pflag.FlagSet) {
 	o.out.bind(flags)
 }
 
-func (o *outlineOpts) Validate(rawURL string) error {
-	if strings.TrimSpace(rawURL) == "" {
+func (o *outlineOpts) Validate() error {
+	if strings.TrimSpace(o.rawURL) == "" {
 		return errors.New("url is required")
 	}
 	return nil
@@ -32,8 +33,8 @@ func (o *outlineOpts) Validate(rawURL string) error {
 
 // outlineResult mirrors the MCP adapter's JSON keys for cross-surface consistency.
 type outlineResult struct {
-	URL      string                `json:"url" yaml:"url"`
-	Headings []grafanadocs.Heading `json:"headings" yaml:"headings"`
+	URL      string       `json:"url" yaml:"url"`
+	Headings []cliHeading `json:"headings" yaml:"headings"`
 }
 
 func outlineCommand() *cobra.Command {
@@ -46,17 +47,22 @@ func outlineCommand() *cobra.Command {
 		Example: `  gcx docs outline https://grafana.com/docs/tempo/latest/`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rawURL := args[0]
-			if err := opts.Validate(rawURL); err != nil {
+			opts.rawURL = args[0]
+			if err := opts.Validate(); err != nil {
 				return err
 			}
-			doc, err := grafanadocs.FetchDoc(cmd.Context(), rawURL)
+			doc, err := grafanadocs.FetchDoc(cmd.Context(), opts.rawURL)
 			if err != nil {
 				return err
 			}
+			raw := grafanadocs.Outline(doc)
+			headings := make([]cliHeading, len(raw))
+			for i, h := range raw {
+				headings[i] = cliHeading{Level: h.Level, Text: h.Text, Line: h.Line}
+			}
 			return opts.out.encode(cmd.OutOrStdout(), outlineResult{
 				URL:      doc.URL,
-				Headings: grafanadocs.Outline(doc),
+				Headings: headings,
 			})
 		},
 	}
@@ -73,7 +79,6 @@ func (outlineTableCodec) Encode(w io.Writer, v any) error {
 		return fmt.Errorf("outlineTableCodec: expected outlineResult, got %T", v)
 	}
 	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
-	// Writes to tabwriter are buffered; the only meaningful error surfaces at Flush.
 	_, _ = fmt.Fprintln(tw, "LVL\tHEADING\tLINE")
 	for _, h := range res.Headings {
 		_, _ = fmt.Fprintf(tw, "%d\t%s\t%d\n", h.Level, h.Text, h.Line)

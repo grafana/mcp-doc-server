@@ -13,7 +13,7 @@ import (
 
 // productsResult mirrors the MCP adapter's JSON keys for cross-surface consistency.
 type productsResult struct {
-	Products []grafanadocs.Product `json:"products" yaml:"products"`
+	Products []cliProduct `json:"products" yaml:"products"`
 }
 
 func productsCommand(idx *grafanadocs.Index) *cobra.Command {
@@ -25,7 +25,12 @@ func productsCommand(idx *grafanadocs.Index) *cobra.Command {
 		Example: `  gcx docs products`,
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return out.encode(cmd.OutOrStdout(), productsResult{Products: idx.Products()})
+			raw := idx.Products()
+			products := make([]cliProduct, len(raw))
+			for i, p := range raw {
+				products[i] = cliProduct{Name: p.Name, Count: p.Count}
+			}
+			return out.encode(cmd.OutOrStdout(), productsResult{Products: products})
 		},
 	}
 	out.bind(cmd.Flags())
@@ -41,7 +46,6 @@ func (productsTableCodec) Encode(w io.Writer, v any) error {
 		return fmt.Errorf("productsTableCodec: expected productsResult, got %T", v)
 	}
 	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
-	// Writes to tabwriter are buffered; the only meaningful error surfaces at Flush.
 	_, _ = fmt.Fprintln(tw, "PRODUCT\tCOUNT")
 	for _, p := range res.Products {
 		_, _ = fmt.Fprintf(tw, "%s\t%d\n", p.Name, p.Count)
