@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 420" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13">
+  <defs>
+    <marker id="arrow-right" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#3B82F6"/>
+    </marker>
+    <marker id="arrow-left" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#10B981"/>
+    </marker>
+  </defs>
+
+  <!-- Participant boxes -->
+  <rect x="100" y="20" width="100" height="36" rx="6" fill="#3B82F6" />
+  <text x="150" y="43" text-anchor="middle" fill="white" font-weight="600">Agent</text>
+
+  <rect x="390" y="20" width="140" height="36" rx="6" fill="#6366F1" />
+  <text x="460" y="43" text-anchor="middle" fill="white" font-weight="600">mcp-doc-server</text>
+
+  <!-- Lifelines -->
+  <line x1="150" y1="56" x2="150" y2="390" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="460" y1="56" x2="460" y2="390" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+  <!-- Message 1: search -->
+  <line x1="155" y1="100" x2="452" y2="100" stroke="#3B82F6" stroke-width="1.5" marker-end="url(#arrow-right)"/>
+  <rect x="200" y="82" width="200" height="22" rx="4" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="300" y="97" text-anchor="middle" fill="#1E293B" font-size="12">search "Loki retention"</text>
+
+  <!-- Message 2: response -->
+  <line x1="455" y1="150" x2="158" y2="150" stroke="#10B981" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrow-left)"/>
+  <rect x="215" y="132" width="180" height="22" rx="4" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="305" y="147" text-anchor="middle" fill="#1E293B" font-size="12">ranked pages + URLs</text>
+
+  <!-- Message 3: outline -->
+  <line x1="155" y1="205" x2="452" y2="205" stroke="#3B82F6" stroke-width="1.5" marker-end="url(#arrow-right)"/>
+  <rect x="220" y="187" width="170" height="22" rx="4" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="305" y="202" text-anchor="middle" fill="#1E293B" font-size="12">outline (top result)</text>
+
+  <!-- Message 4: response -->
+  <line x1="455" y1="255" x2="158" y2="255" stroke="#10B981" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrow-left)"/>
+  <rect x="240" y="237" width="130" height="22" rx="4" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="305" y="252" text-anchor="middle" fill="#1E293B" font-size="12">heading list</text>
+
+  <!-- Message 5: get -->
+  <line x1="155" y1="310" x2="452" y2="310" stroke="#3B82F6" stroke-width="1.5" marker-end="url(#arrow-right)"/>
+  <rect x="200" y="292" width="210" height="22" rx="4" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="305" y="307" text-anchor="middle" fill="#1E293B" font-size="12">get (section: "Retention")</text>
+
+  <!-- Message 6: response -->
+  <line x1="455" y1="360" x2="158" y2="360" stroke="#10B981" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrow-left)"/>
+  <rect x="175" y="342" width="260" height="22" rx="4" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="305" y="357" text-anchor="middle" fill="#1E293B" font-size="12">just that section, as clean Markdown</text>
+</svg>
