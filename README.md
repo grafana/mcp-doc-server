@@ -2,6 +2,31 @@
 
 A docs-retrieval MCP server for Grafana Labs product documentation.
 
+> **Internal project.** This repository is private and requires Grafana GitHub organization membership. See the [documentation](https://grafana.com/docs/mcp-doc-server/latest/) for full usage instructions.
+
+## Quick start
+
+Install the server and CLI (requires `GOPRIVATE=github.com/grafana/*`):
+
+```bash
+go install github.com/grafana/mcp-doc-server/cmd/mcp-doc-server@latest
+go install github.com/grafana/mcp-doc-server/cmd/docs@latest
+```
+
+Connect it to your MCP client (Cursor, Claude Desktop, Claude Code):
+
+```json
+{
+  "mcpServers": {
+    "grafana-docs": {
+      "command": "/absolute/path/to/bin/mcp-doc-server"
+    }
+  }
+}
+```
+
+Run `go env GOPATH` to find the binary path. For full setup instructions, refer to [Install and configure](https://grafana.com/docs/mcp-doc-server/latest/install/).
+
 ## Why an MCP server instead of prompting?
 
 | Problem with prompting | What this solves |
@@ -36,20 +61,24 @@ idx, err := grafanadocs.LoadIndex(ctx, grafanadocs.DefaultIndexURL)
 ### Standalone MCP server
 
 ```bash
-go run ./cmd/mcp-doc-server   # stdio; set DOCS_INDEX_URL to override the index
+mcp-doc-server   # stdio; set DOCS_INDEX_URL to override the index
 ```
+
+Or from source: `go run ./cmd/mcp-doc-server/`
 
 ### Standalone CLI
 
 Runs the cobra adapter on its own (same commands gcx would expose under `gcx docs`):
 
 ```bash
-go run ./cmd/docs search "loki query" --limit 5      # text table (default)
-go run ./cmd/docs search clustering -o json          # also: yaml, agents
-go run ./cmd/docs outline https://grafana.com/docs/agent/latest/flow/concepts/clustering/
-go run ./cmd/docs get https://grafana.com/docs/agent/latest/flow/concepts/clustering/ --section "Use cases"
-go run ./cmd/docs products
+docs search "loki query" --limit 5      # text table (default)
+docs search clustering -o json          # also: yaml, agents
+docs outline https://grafana.com/docs/agent/latest/flow/concepts/clustering/
+docs get https://grafana.com/docs/agent/latest/flow/concepts/clustering/ --section "Use cases"
+docs products
 ```
+
+Or from source: `go run ./cmd/docs/ <command>`
 
 ### With gcx (cobra adapter)
 
