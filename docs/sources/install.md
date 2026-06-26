@@ -12,7 +12,7 @@ versionDate: 2026-06-25
 Build mcp-doc-server and connect it to your Model Context Protocol (MCP) client. The server works exclusively with Grafana Labs docs served from `grafana.com/docs/`.
 
 {{< admonition type="note" >}}
-mcp-doc-server is an internal Grafana Labs project. The repository at `github.com/grafana/mcp-doc-server` is private and requires Grafana GitHub organization access.
+mcp-doc-server is an internal Grafana Labs project. The repository at `github.com/grafana/mcp-doc-server` is internal and requires Grafana GitHub organization access.
 {{< /admonition >}}
 
 ## Before you begin
@@ -21,12 +21,12 @@ You need:
 
 - Go 1.25 or later
 - Network access to `grafana.com` (for the index and doc pages)
-- Access to the `github.com/grafana` GitHub organization (the repository is private)
+- Access to the `github.com/grafana` GitHub organization (the repository is internal)
 - An MCP-compatible client (Cursor, Claude Desktop, Claude Code, or any stdio client)
 
 ## Install with `go install`
 
-If your Go environment is configured to access private Grafana repositories, install both binaries directly:
+If your Go environment is configured to access internal Grafana repositories, install both binaries directly:
 
 ```bash
 go install github.com/grafana/mcp-doc-server/cmd/mcp-doc-server@latest
@@ -150,7 +150,7 @@ For details on all tool parameters and output formats, refer to [Tools and CLI r
 
 | Symptom | Fix |
 |---------|-----|
-| `go install` fails with "could not read Username" | The repo is private. Set `GOPRIVATE=github.com/grafana/*` and confirm you can access `github.com/grafana/mcp-doc-server` via SSH (`ssh -T git@github.com`). |
+| `go install` fails with "could not read Username" | The repo is internal (not public). Set `GOPRIVATE=github.com/grafana/*` and confirm you can access `github.com/grafana/mcp-doc-server` via SSH (`ssh -T git@github.com`). |
 | Build fails | Check your Go version is 1.25 or later (`go version`). |
 | Server exits on startup with an index error | The server can't reach `grafana.com`. Check network access and any proxy settings. |
 | `search` returns nothing | Usually a query mismatch. If every search is empty, the index failed to load — check the `stderr` startup logs. |
