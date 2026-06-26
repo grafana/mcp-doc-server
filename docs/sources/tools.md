@@ -315,7 +315,7 @@ docs get <url> [flags]
 |------|---------|-------------|
 | `--section` | — | Heading text to extract |
 | `--offset` | 0 | Line offset for paging (0-indexed) |
-| `--limit` | 0 (= 80 lines) | Maximum lines to return |
+| `--limit` | 80 | Maximum lines to return |
 | `-o`, `--output` | `text` | Output format |
 
 ```bash

@@ -21,13 +21,17 @@ You need:
 
 ## Search for a page
 
-Clone the repository and run the CLI directly from source — no build step required:
+Clone the repository and run the CLI directly from source:
 
 ```bash
 git clone git@github.com:grafana/mcp-doc-server.git
 cd mcp-doc-server
 go run ./cmd/docs/ search "alerting rules" --limit 3
 ```
+
+{{< admonition type="note" >}}
+`go run` compiles the binary on every invocation. For repeated use, build once with `go build -o bin/docs ./cmd/docs/` and run `./bin/docs` instead.
+{{< /admonition >}}
 
 You should see a ranked table of matching pages:
 
@@ -58,7 +62,7 @@ The repository includes a demo script that exercises all four tools with live ou
 
 The script walks through `list_products`, `search_docs`, `get_doc_outline`, and `get_doc` (bounded and section-scoped), plus JSON output mode.
 
-The [`demo/scenarios/`](https://github.com/grafana/mcp-doc-server/tree/main/demo/scenarios) directory has full agent workflows: grounding answers, token-efficient retrieval, configuration lookups during coding, and more.
+The `demo/scenarios/` directory in the repository has full agent workflows: grounding answers, token-efficient retrieval, configuration lookups during coding, and more.
 
 For a full worked example of how an agent uses these tools, refer to [Tools and CLI reference](../tools/#workflow).
 

@@ -31,11 +31,15 @@ For the timeout, rate-limit, and body-size values these packages enforce, refer 
 You need:
 
 - A Go module (Go 1.25+)
+- Access to the `github.com/grafana` GitHub organization (the repository is private)
 - Network access to `grafana.com`
 
 ## Add the dependency
 
+The module is in a private repository. Set `GOPRIVATE` before fetching:
+
 ```bash
+go env -w GOPRIVATE=github.com/grafana/*
 go get github.com/grafana/mcp-doc-server/pkg/grafanadocs
 ```
 
