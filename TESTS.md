@@ -296,10 +296,11 @@ unclosed fences, multiple blank lines.
 **Action:** `FuzzParseHeading` with random strings.
 **Assertion:** Level is always 0-6. Level 0 has empty text.
 
-## Scenario: Fuzz — fenceBoundaryMarker returns valid values
+## Scenario: Fuzz — fenceInfo returns valid values
 **Setup:** Go fuzz corpus.
-**Action:** `FuzzFenceBoundaryMarker` with random strings.
-**Assertion:** Result is always one of `""`, `` "```" ``, `"~~~"`.
+**Action:** `FuzzFenceInfo` with random strings.
+**Assertion:** Non-fence lines return `(0, 0, false)`. Fence lines return char `'`'` or
+`'~'`, length ≥ 3, and a valid `blankAfter` flag.
 
 ## Scenario: Fuzz — ensureMDSuffix does not panic
 **Setup:** Go fuzz corpus with URL-like strings.
@@ -388,3 +389,64 @@ not treated as a heading (I14).
 **Setup:** A page with `+++`-delimited TOML frontmatter.
 **Action:** `Cleanup`.
 **Assertion:** The TOML block and its keys are removed; body content is preserved (I8).
+
+## Scenario: Product name suffix cleaning
+**Setup:** Header lines with various casing of "documentation": `## Grafana Tempo documentation`,
+`## Grafana Agent Documentation`, `## k6 Studio`, `## OpenTelemetry at Grafana Labs`.
+**Action:** Parse each header with the product header regex and strip the trailing
+" documentation" / " Documentation" suffix.
+**Assertion:** Product names are `Grafana Tempo`, `Grafana Agent`, `k6 Studio`, and
+`OpenTelemetry at Grafana Labs` respectively. Headers without the suffix are unchanged.
+
+## Scenario: Tokenize drops short tokens
+**Setup:** Input strings: `"configure tempo"`, `"PromQL query"`, `"a b"`, `"k6-browser"`.
+**Action:** `tokenize(input)`.
+**Assertion:** `"configure tempo"` → `["configure", "tempo"]`; `"PromQL query"` →
+`["promql", "query"]`; `"a b"` → nil (single-char tokens dropped); `"k6-browser"` →
+`["k6", "browser"]`.
+
+## Scenario: Title matches rank higher than description-only matches
+**Setup:** Index loaded from fixture.
+**Action:** `Search(idx, "clustering", SearchOpts{Limit: 10})`.
+**Assertion:** The top result has "clustering" in its title, not just in its description.
+
+## Scenario: FetchDoc via httptest (no network)
+**Setup:** `httptest.Server` returning sample markdown with frontmatter and shortcodes.
+**Action:** `FetchDoc(ctx, testServerURL)` (with allowlist override for `127.0.0.1`).
+**Assertion:** Content is cleaned (no frontmatter, no shortcodes, headings preserved);
+`doc.URL` is the original URL (not the `.md`-suffixed fetch URL); `.md` suffix is
+appended to the request path when missing; not doubled when already present.
+
+## Scenario: Body size cap enforced on fetch
+**Setup:** `httptest.Server` serving a body larger than 2 MiB.
+**Action:** `FetchDoc(ctx, url)`.
+**Assertion:** No error; returned content is significantly smaller than what was served
+(`io.LimitReader` caps at `maxBodyBytes`).
+
+## Scenario: Non-200 status returns error on fetch
+**Setup:** `httptest.Server` returning 404.
+**Action:** `FetchDoc(ctx, url)`.
+**Assertion:** Error message contains "404".
+
+## Scenario: Context cancellation respected on fetch
+**Setup:** `httptest.Server` that hangs; context cancelled immediately.
+**Action:** `FetchDoc(cancelledCtx, url)`.
+**Assertion:** Returns an error (context cancelled).
+
+## Scenario: CLI codecs reject wrong types
+**Setup:** Each text codec (`searchTableCodec`, `getTextCodec`, `outlineTableCodec`,
+`productsTableCodec`).
+**Action:** `codec.Encode(w, "wrong type")`.
+**Assertion:** Returns an error.
+
+## Scenario: NeedsIndex drift guard
+**Setup:** `cli.Command(idx)` and `indexReadingCommands` allow-list.
+**Action:** Assert every name in `indexReadingCommands` is a real subcommand of the docs
+command group.
+**Assertion:** No allow-listed name is orphaned (prevents drift between the gate and
+the wired subcommands) (I26).
+
+## Scenario: Product counts sum to entry count
+**Setup:** Index loaded from fixture.
+**Action:** Sum all `Product.Count` values.
+**Assertion:** Sum equals `idx.EntryCount()`.

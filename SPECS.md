@@ -65,13 +65,22 @@ annotate instead). See `AGENTS.md` for the SDD convention and `NOTES.md` for dec
   Output: `{products: [{name: string, count: int}]}`.
 
 ### Core API surface (`pkg/grafanadocs`)
-Exported functions — plain Go, zero framework deps (stdlib + `net/http`):
+Exported symbols — plain Go, zero framework deps (stdlib + `net/http`):
+
+Constants:
+- `DefaultIndexURL = "https://grafana.com/llms-full.txt"` — the canonical index location;
+  both `cmd/docs` and `cmd/mcp-doc-server` default to this and allow a `DOCS_INDEX_URL`
+  env var override.
+
+Functions:
 - `LoadIndex(ctx context.Context, url string) (*Index, error)`
 - `LoadIndexFromReader(r io.Reader) (*Index, error)`
 - `Search(idx *Index, query string, opts SearchOpts) []Entry`
 - `(*Index).Products() []Product`
 - `(*Index).EntryCount() int`
 - `FetchDoc(ctx context.Context, url string) (*Doc, error)`
+- `(*Doc).EnsureLines()` — lazily splits `Content` into `Lines`; recomputes when
+  `Content` has changed since the last call (tracked via an internal snapshot).
 - `Cleanup(raw []byte) []byte`
 - `Outline(doc *Doc) []Heading`
 - `Excerpt(doc *Doc, opts ExcerptOpts) ExcerptResult`
@@ -95,12 +104,15 @@ own tags. This keeps the core free of framework opinions.
 - `SearchOpts{Product string, Limit int}` — controls search behavior. `Product` filters
   to a specific product (empty = all); `Limit` caps results (0 = default 5).
 - `ExcerptOpts{Section string, Offset int, Limit int}` — controls bounded retrieval.
-  `Section` extracts by heading text; when empty, `Offset`/`Limit` do line-based paging.
+  `Section` extracts by heading text (case-insensitive match); when empty,
+  `Offset`/`Limit` do line-based paging. `Offset` is 0-indexed; negative values are
+  clamped to 0. `Limit` 0 defaults to 80 lines (~2,000 tokens at ~25 tokens/line).
 - `ExcerptResult{Content string, Start int, End int, Total int}` — the excerpted content
-  with 1-indexed position metadata.
+  with 1-indexed position metadata. When content is empty (missing section or offset past
+  end), `Start` and `End` are 0 and `Total` reflects the document size.
 
 ### Config & runtime
-- **Go version:** 1.24+ (floor); mcp-grafana currently uses 1.26.3.
+- **Go version:** 1.25+ (floor; `go.mod` currently says `go 1.25.5`).
 - **`mcp-go` version:** v0.55.0 (standalone server uses latest; core has no mcp-go dep).
 - **Module path:** `github.com/grafana/mcp-doc-server`.
 - **Transport:** stdio in v1.
@@ -201,16 +213,106 @@ own tags. This keeps the core free of framework opinions.
   must stay in sync with the wired subcommands (enforced by a drift test).
 
 ### Search ranking (decided)
+- **Tokenization:** the query and each entry's title/description are split into lowercase
+  tokens on non-letter/non-digit boundaries (Unicode-aware `FieldsFunc`). Tokens shorter
+  than 2 characters are dropped, so single-letter words (`a`, `b`) never match.
 - **Word-boundary matching:** tokens match against whole words (not substrings). "rate"
-  matches an entry with "rate" in title but not "migrate".
-- **TF-IDF weighting:** IDF computed once at index load time; rare terms score higher than
-  ubiquitous ones (e.g., "clustering" > "grafana").
-- **Title 3x weight:** title word matches contribute 3× their IDF weight vs. 1× for
-  description matches.
+  matches an entry with "rate" in title but not "migrate". Each field is converted to a
+  word set (`map[string]bool`) before matching.
+- **TF-IDF weighting:** IDF computed once at index load time via
+  `buildIDF(entries) map[string]float64` using `log(N / df(term))`. Rare terms score
+  higher than ubiquitous ones (e.g., "clustering" > "grafana"). Unknown tokens default
+  to weight 1.
+- **Title 3× weight:** title word matches contribute `3 × idf[token]` vs. `1 × idf[token]`
+  for description-only matches. A token matching both title and description scores at the
+  title weight only (not summed).
 - **All-tokens bonus (1.5×):** entries matching every query token get a 1.5× multiplier.
-- **Exact phrase bonus (2×):** if the full query appears verbatim in the title (case-insensitive),
-  score is doubled.
+  Only applied when the query has more than one token.
+- **Exact phrase bonus (2×):** if the full query appears verbatim in the title
+  (case-insensitive `strings.Contains`), the score is doubled. Only applied when the
+  query has more than one token.
+- **Score formula:** `int(total * 100)` where `total` is the weighted sum after bonuses.
+  The ×100 granularity avoids float-precision ties.
+- **Sorting:** results are sorted by score descending (insertion sort — result sets are
+  small). Ties are left in index order (stable within a score tier).
 - **Deterministic:** no randomness, no network calls. Same index + same query = same results.
+
+### Cleanup pipeline algorithm
+The `Cleanup` function executes in this exact order (critical for idempotency):
+
+1. **CRLF normalization:** `\r\n` → `\n`, then lone `\r` → `\n`.
+2. **Trim edges:** `strings.TrimSpace` — makes frontmatter detection stable across
+   passes; the final trim (step 8) would otherwise expose a frontmatter delimiter only
+   on a second pass.
+3. **Initial frontmatter strip:** removes YAML (`---`) or TOML (`+++`) frontmatter at
+   the start (closing delimiter must appear at the start of a line: `\n---` or `\n+++`).
+4. **Extract code blocks:** `extractCodeBlocks` replaces fenced code blocks with
+   NUL-byte-delimited placeholders (`\x00CODEBLOCK_N\x00`) and returns the original
+   blocks separately. Uses `fenceInfo`/`fenceTracker` for CommonMark-conformant fence
+   matching (see I14). Unclosed fences are emitted in their original position (I23).
+5. **Convergence loop:** repeat until stable: `stripFrontmatter` → `stripShortcodes` →
+   `stripHTMLComments`. This ensures removing one cannot reveal another (e.g.
+   `{<!---->{<>}}` → strip HTML comment → `{{<>}}` → strip shortcode → empty). The loop
+   runs at most 2–3 iterations for any realistic input.
+6. **Collapse blank lines:** `collapseBlankLines` reduces runs of 3+ blank lines to 2.
+   Single-pass `strings.Builder` (O(n)). Runs *before* code block restoration so
+   intentional blank lines inside code blocks are preserved (I8/I14).
+7. **Restore code blocks:** `restoreCodeBlocks` replaces numbered placeholders with the
+   original code block content, byte-identical.
+8. **Final trim + trailing newline:** `strings.TrimSpace(s) + "\n"`.
+
+Regex patterns used:
+- **Shortcodes:** `\{\{<.*?>}}` | `\{\{%.*?%}}` (non-greedy; handles `>` in arguments).
+- **HTML comments:** `(?s)<!--.*?-->` (non-greedy, dotall).
+- **Product header:** `^## (.+)$` (used by `LoadIndexFromReader`, not `Cleanup`).
+
+### MCP adapter API surface (`pkg/grafanadocs/mcp`)
+
+Exported types and constructors:
+- `Server` — wraps a `*grafanadocs.Index` and exposes it as MCP tool handlers.
+- `New(idx *grafanadocs.Index) *Server` — creates a Server with a pre-loaded index.
+- `(*Server).Register(srv *server.MCPServer)` — adds all four doc tools to an existing
+  `mark3labs/mcp-go` server.
+- `NewMCPServer(idx *grafanadocs.Index, version string) *server.MCPServer` — creates a
+  fully configured MCP server with docs tools registered (convenience wrapper).
+
+Tool annotations: all four tools are registered with `ReadOnlyHintAnnotation(true)`,
+`DestructiveHintAnnotation(false)`, `OpenWorldHintAnnotation(false)` via a shared
+`newReadOnlyTool` helper.
+
+Wrapper types with explicit `json:"snake_case"` tags (the core types carry no tags):
+- `searchEntry{Title, URL, Description, Product}` — wraps `grafanadocs.Entry`.
+- `outlineHeading{Level, Text, Line}` — wraps `grafanadocs.Heading`.
+- `productEntry{Name, Count}` — wraps `grafanadocs.Product`.
+
+The `handleGetDoc` response uses `map[string]any` with keys `"content"`, `"url"`,
+`"total_lines"`, `"returned_range"` (matching the tool schema).
+
+Input validation: `safeInt(v float64) (int, error)` converts JSON numbers to int,
+rejecting NaN, Inf, negatives, and values above `maxSafeInt = 1<<31` (I17).
+
+### Binary entry points
+
+**`cmd/mcp-doc-server`** (standalone MCP server):
+1. Registers signal handler (`SIGINT`).
+2. Reads `DOCS_INDEX_URL` env var (defaults to `DefaultIndexURL`).
+3. Logs server version and index URL to stderr.
+4. Loads the index via `LoadIndex` (fails fatally on error).
+5. Logs entry/product counts to stderr.
+6. Creates the MCP server via `NewMCPServer(idx, version)`.
+7. Serves on stdio via `server.ServeStdio(srv)`.
+- Version constant: `"0.1.0"`.
+
+**`cmd/docs`** (standalone CLI):
+1. Registers signal handler (`SIGINT`).
+2. Calls `cli.NeedsIndex(os.Args[1:])` to decide whether the index is needed.
+3. If needed: loads index via `LoadIndex(ctx, indexURL())`. Prints error to stderr
+   and exits 1 on failure.
+4. If not needed: uses an empty `&grafanadocs.Index{}` (help/completion work offline).
+5. Creates the cobra command group via `cli.Command(idx)`.
+6. Silences cobra's default usage-on-error (`SilenceUsage = true`).
+7. Executes the command; exits 1 if cobra returns an error.
+- `indexURL()` reads `DOCS_INDEX_URL` env var, defaults to `DefaultIndexURL`.
 
 ## Open questions (to decide as we go)
 
