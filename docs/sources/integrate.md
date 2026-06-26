@@ -31,12 +31,12 @@ For the timeout, rate-limit, and body-size values these packages enforce, refer 
 You need:
 
 - A Go module (Go 1.25+)
-- Access to the `github.com/grafana` GitHub organization (the repository is private)
+- Access to the `github.com/grafana` GitHub organization (the repository is internal)
 - Network access to `grafana.com`
 
 ## Add the dependency
 
-The module is in a private repository. Set `GOPRIVATE` before fetching:
+The module is in an internal repository. Set `GOPRIVATE` before fetching:
 
 ```bash
 go env -w GOPRIVATE=github.com/grafana/*

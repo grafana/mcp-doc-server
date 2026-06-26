@@ -14,7 +14,7 @@ mcp-doc-server is a Model Context Protocol (MCP) server that gives AI agents acc
 Agents search, browse, and retrieve current documentation from `grafana.com/docs/` during a conversation instead of relying on potentially stale training data.
 
 {{< admonition type="note" >}}
-mcp-doc-server is an internal Grafana Labs project. The [source repository](https://github.com/grafana/mcp-doc-server) is private and requires Grafana GitHub organization membership.
+mcp-doc-server is an internal Grafana Labs project. The [source repository](https://github.com/grafana/mcp-doc-server) is internal and requires Grafana GitHub organization membership.
 {{< /admonition >}}
 
 ## Why use mcp-doc-server
