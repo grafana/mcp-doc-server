@@ -2,7 +2,7 @@
 
 A docs-retrieval MCP server for Grafana Labs product documentation.
 
-> **Internal project.** This repository is private and requires Grafana GitHub organization membership. See the [documentation](https://grafana.com/docs/mcp-doc-server/latest/) for full usage instructions.
+> **Internal project.** This repository is private and requires Grafana GitHub organization membership. Refer to the [documentation](https://grafana.com/docs/mcp-doc-server/latest/) for full usage instructions.
 
 ## Quick start
 
