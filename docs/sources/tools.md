@@ -1,7 +1,7 @@
 ---
 title: Tools and CLI reference
 menuTitle: Tools
-description: Reference for the four mcp-doc-server tools — search_docs, get_doc_outline, get_doc, and list_products — with parameters, output examples, and CLI usage.
+description: Reference for the four mcp-doc-server tools (search_docs, get_doc_outline, get_doc, and list_products) with parameters, output examples, and CLI usage.
 weight: 4
 topicType: reference
 versionDate: 2026-06-25
@@ -20,7 +20,7 @@ mcp-doc-server exposes four tools, available both as Model Context Protocol (MCP
 
 ## Workflow
 
-Agents narrow in progressively—search, outline, then fetch only the section they need.
+Agents narrow in progressively: search, outline, then fetch only the section they need.
 
 ![Sequence diagram showing the full tool workflow: the agent searches for pages, requests a page outline, and fetches one section while the server retrieves documentation on demand](tools-workflow.svg)
 
@@ -94,8 +94,8 @@ Search Grafana documentation by keyword. Returns matching pages ranked by releva
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `query` | string | Yes | — | Search query. Matches whole words in titles and descriptions. |
-| `product` | string | No | — | Filter to a specific product. Resolves by exact match, then prefix, then partial match. |
+| `query` | string | Yes | None | Search query. Matches whole words in titles and descriptions. |
+| `product` | string | No | None | Filter to a specific product. Resolves by exact match, then prefix, then partial match. |
 | `limit` | integer | No | 5 | Maximum results to return. |
 
 ### Output
@@ -117,25 +117,25 @@ A JSON array of entries, each with `title`, `url`, `description`, and `product` 
 
 Results use a deterministic scoring algorithm:
 
-- **Word-boundary matching**—tokens match whole words. "rate" matches "rate" but not "migrate".
-- **TF-IDF weighting**—rare terms score higher than common ones.
-- **Title 3x weight**—title matches count three times as much as description matches.
-- **All-tokens bonus (1.5x)**—when every query token matches and the query has more than one token.
-- **Exact phrase bonus (2x)**—when a multi-token query appears verbatim in the title.
+- **Word-boundary matching**: tokens match whole words. "rate" matches "rate" but not "migrate".
+- **TF-IDF weighting**: rare terms score higher than common ones.
+- **Title 3x weight**: title matches count three times as much as description matches.
+- **All-tokens bonus (1.5x)**: when every query token matches and the query has more than one token.
+- **Exact phrase bonus (2x)**: when a multi-token query appears verbatim in the title.
 
 ### Product filter
 
 The `product` value resolves to canonical names in precedence order, stopping at the first level that matches anything:
 
-1. **Exact** (case-insensitive)—`Grafana Loki`
-2. **Prefix**—`Grafana` matches "Grafana Loki", "Grafana Mimir", etc.
-3. **Partial**—`loki` matches "Grafana Loki"
+1. **Exact** (case-insensitive): `Grafana Loki`
+2. **Prefix**: `Grafana` matches "Grafana Loki", "Grafana Mimir", etc.
+3. **Partial**: `loki` matches "Grafana Loki"
 
 Use `list_products` to discover valid names.
 
 ### Empty results
 
-When nothing matches, the tool returns a plain-text message (not a JSON array) with guidance—suggesting broader terms, or, if a product filter was set, suggesting you broaden it or call `list_products`.
+When nothing matches, the tool returns a plain-text message (not a JSON array) with guidance, suggesting broader terms, or, if a product filter was set, suggesting you broaden it or call `list_products`.
 
 ### Examples
 
@@ -155,7 +155,7 @@ Get the heading outline of a page. Use it to find section names before calling `
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `url` | string | Yes | — | The `grafana.com/docs/` URL to inspect. |
+| `url` | string | Yes | None | The `grafana.com/docs/` URL to inspect. |
 
 ### Output
 
@@ -195,8 +195,8 @@ Fetch a page as cleaned Markdown. Supports section extraction and offset/limit p
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `url` | string | Yes | — | The `grafana.com/docs/` URL to fetch. |
-| `section` | string | No | — | Heading text to extract. Returns only that section. |
+| `url` | string | Yes | None | The `grafana.com/docs/` URL to fetch. |
+| `section` | string | No | None | Heading text to extract. Returns only that section. |
 | `offset` | integer | No | 0 | Line offset for paging (0-indexed). Used when `section` isn't set. |
 | `limit` | integer | No | 80 | Maximum lines to return. Used when `section` isn't set. |
 
@@ -219,7 +219,7 @@ When `section` is set, `get_doc` returns the content from that heading to the ne
 
 ### Paging
 
-When `section` isn't set, use `offset` and `limit`. The default `limit` is 80 lines—`get_doc` never returns the whole page unless you raise the limit. Use `total_lines` and `returned_range` to page through a long document.
+When `section` isn't set, use `offset` and `limit`. The default `limit` is 80 lines; `get_doc` never returns the whole page unless you raise the limit. Use `total_lines` and `returned_range` to page through a long document.
 
 ### Content cleanup
 
@@ -269,7 +269,7 @@ Products come from the `## ... documentation` headers in the index. "Documentati
 
 ## CLI usage
 
-The `docs` CLI mirrors the tools in a terminal-friendly form—useful for testing, scripting, and direct access without an MCP client.
+The `docs` CLI mirrors the tools in a terminal-friendly form, useful for testing, scripting, and direct access without an MCP client.
 
 ### Output formats
 
@@ -292,7 +292,7 @@ docs search <query> [flags]
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--product` | — | Filter results to a specific product |
+| `--product` | None | Filter results to a specific product |
 | `--limit` | 5 | Maximum results to return |
 | `-o`, `--output` | `text` | Output format |
 
@@ -313,7 +313,7 @@ docs get <url> [flags]
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--section` | — | Heading text to extract |
+| `--section` | None | Heading text to extract |
 | `--offset` | 0 | Line offset for paging (0-indexed) |
 | `--limit` | 80 | Maximum lines to return |
 | `-o`, `--output` | `text` | Output format |
@@ -362,7 +362,7 @@ docs products -o json
 
 ### Index loading
 
-The CLI loads the index lazily—only `search` and `products` need it. `get` and `outline` fetch pages directly and run with no startup delay. Set `DOCS_INDEX_URL` to override the index location.
+The CLI loads the index lazily; only `search` and `products` need it. `get` and `outline` fetch pages directly and run with no startup delay. Set `DOCS_INDEX_URL` to override the index location.
 
 ### Exit codes
 
@@ -381,6 +381,6 @@ docs search "alerting" -o agents | jq -r '.[].url'
 
 ## Related resources
 
-- [Install and configure](../install/)—build the binaries and connect a client
-- [Configuration](../configure/)—environment variables and limits
-- [Integrate the core library](../integrate/)—the Go API behind these tools
+- [Install and configure](../install/): build the binaries and connect a client
+- [Configuration](../configure/): environment variables and limits
+- [Integrate the core library](../integrate/): the Go API behind these tools

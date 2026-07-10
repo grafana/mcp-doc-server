@@ -13,9 +13,28 @@ mcp-doc-server is a Model Context Protocol (MCP) server that gives AI agents acc
 
 Agents search, browse, and retrieve current documentation from `grafana.com/docs/` during a conversation instead of relying on potentially stale training data.
 
+## When to use it
+
+Use mcp-doc-server to give an AI agent or LLM direct access to official Grafana documentation during a conversation, so it reads the actual content instead of guessing. 
+Compared to a general web search, the agent gets ranked pages from `grafana.com/docs` and fetches just the section it needs as clean, citable Markdown, at a lower token cost than loading full pages.
+
 {{< admonition type="note" >}}
 mcp-doc-server is an internal Grafana Labs project. The [source repository](https://github.com/grafana/mcp-doc-server) is internal and requires Grafana GitHub organization membership.
 {{< /admonition >}}
+
+## Who it's for
+
+mcp-doc-server is for engineers and technical writers who work with Grafana products and drive an MCP client such as Cursor, Claude Desktop, or Claude Code. Go developers can also embed the core library directly in their own projects. Refer to [Integrate the core library](integrate/).
+
+## Which surface to use
+
+The same doc tools ship in three places. Pick the one that matches your setup:
+
+| Surface | Use it when |
+|---------|-------------|
+| **mcp-doc-server** (this project) | You want a standalone MCP server that exposes only the docs tools. |
+| **[gcx](https://github.com/grafana/gcx)** | You already use the gcx CLI. The `gcx docs` commands run the same retrieval. |
+| **[mcp-grafana](https://github.com/grafana/mcp-grafana)** | You already run mcp-grafana and want the docs tools alongside its other Grafana MCP tools. |
 
 ## Why use mcp-doc-server
 
@@ -41,7 +60,7 @@ A typical retrieval sequence uses three steps: search for a page, get its outlin
 
 ![Sequence diagram showing progressive retrieval: Agent searches, outlines, then fetches a section](progressive-retrieval.svg)
 
-For example, given the question "How does Loki retention work?", an agent can search the docs, select the most relevant page, scan its headings, and fetch only the retention section — then cite the source URL in its response.
+For example, given the question "How does Loki retention work?", an agent can search the docs, select the most relevant page, scan its headings, and fetch only the retention section, then cite the source URL in its response.
 
 ## Design
 
@@ -55,8 +74,8 @@ For the package structure and how downstream projects import the core library, r
 
 ## Next steps
 
-- [Get started](get-started/) — Run the server and try a query
-- [Install and configure](install/) — Build the server and connect an MCP client
-- [Tools reference](tools/) — Tool parameters, CLI usage, and a full workflow example
-- [Configuration](configure/) — Environment variables and limits
-- [Integrate the core library](integrate/) — Embed the core in your own Go project
+- [Get started](get-started/): Run the server and try a query
+- [Install and configure](install/): Build the server and connect an MCP client
+- [Tools reference](tools/): Tool parameters, CLI usage, and a full workflow example
+- [Configuration](configure/): Environment variables and limits
+- [Integrate the core library](integrate/): Embed the core in your own Go project
