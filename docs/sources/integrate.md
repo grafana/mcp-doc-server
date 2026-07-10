@@ -11,7 +11,7 @@ versionDate: 2026-06-25
 
 This page is for Go developers embedding the core library in their own projects. To run the server as-is, refer to [Install and configure](../install/).
 
-Import `pkg/grafanadocs` into your Go project to add Grafana documentation retrieval without depending on Model Context Protocol (MCP) or CLI frameworks. The core is dependency-light — just the Go standard library.
+Import `pkg/grafanadocs` into your Go project to add Grafana documentation retrieval without depending on Model Context Protocol (MCP) or CLI frameworks. The core is dependency-light, just the Go standard library.
 
 ## Architecture
 
@@ -19,10 +19,10 @@ The core package (`pkg/grafanadocs`) has no dependencies on MCP or CLI framework
 
 Two other projects import the core library directly:
 
-- [mcp-grafana](https://github.com/grafana/mcp-grafana) — adds doc tools to its MCP server
-- [gcx](https://github.com/grafana/gcx) — exposes `gcx docs` commands
+- [mcp-grafana](https://github.com/grafana/mcp-grafana): adds doc tools to its MCP server
+- [gcx](https://github.com/grafana/gcx): exposes `gcx docs` commands
 
-Both consumers import `pkg/grafanadocs` directly and write their own idiomatic wrappers — they don't import the MCP or CLI adapters.
+Both consumers import `pkg/grafanadocs` directly and write their own idiomatic wrappers; they don't import the MCP or CLI adapters.
 
 For the timeout, rate-limit, and body-size values these packages enforce, refer to [Configuration](../configure/).
 
@@ -77,7 +77,7 @@ for _, entry := range results {
 }
 ```
 
-`SearchOpts.Product` filters to a specific product (empty means all). `Limit` caps results (0 defaults to 5). `Search` makes no network calls and never returns an error—an empty slice means no matches.
+`SearchOpts.Product` filters to a specific product (empty means all). `Limit` caps results (0 defaults to 5). `Search` makes no network calls and never returns an error; an empty slice means no matches.
 
 ## Fetch a page
 
@@ -119,7 +119,7 @@ fmt.Printf("Lines %d-%d of %d\n", result.Start, result.End, result.Total)
 fmt.Println(result.Content)
 ```
 
-`Excerpt` never errors. When `Limit` is 0 it defaults to 80 lines, so it won't return the whole page unless you raise the limit. If a named `Section` isn't found, `result.Content` is empty—check for that.
+`Excerpt` never errors. When `Limit` is 0 it defaults to 80 lines, so it won't return the whole page unless you raise the limit. If a named `Section` isn't found, `result.Content` is empty; check for that.
 
 ## List products
 
@@ -158,16 +158,16 @@ This adds `docs search`, `docs get`, `docs outline`, and `docs products`.
 |----------|-----------------|---------------|------------|
 | `LoadIndex` | Yes | Non-HTTPS URL, network failure, non-200 status, oversized index | Network and 5xx: yes. Bad URL or scheme: no. |
 | `FetchDoc` | Yes | Allowlist rejection (wrong scheme, host, or path), network failure, non-200 status, blocked redirect | Network and 5xx: yes. Allowlist rejection: no. |
-| `Search` | No | — (returns empty slice on no match) | — |
-| `Outline` | No | — | — |
-| `Excerpt` | No | — (empty `Content` when a section isn't found) | — |
+| `Search` | No | None (returns empty slice on no match) | N/A |
+| `Outline` | No | None | N/A |
+| `Excerpt` | No | None (empty `Content` when a section isn't found) | N/A |
 | `LoadIndexFromReader` | Yes | Malformed index stream | No |
 
 All errors are wrapped with a `grafanadocs:` prefix, so you can match on them with `errors.Is`/`errors.As` or string inspection.
 
 ## Concurrency
 
-After construction, `*Index` is safe for concurrent reads—`Search` and `Products` can run from many goroutines. `FetchDoc`'s rate limiter is process-global, so all callers in the process share the same five-concurrent / 200ms-gap budget.
+After construction, `*Index` is safe for concurrent reads; `Search` and `Products` can run from many goroutines. `FetchDoc`'s rate limiter is process-global, so all callers in the process share the same five-concurrent / 200ms-gap budget.
 
 ## Index lifecycle patterns
 
@@ -181,5 +181,5 @@ Commands that only call `FetchDoc` (like `get` and `outline`) never need the ind
 
 ## Related resources
 
-- [Configuration](../configure/)—the timeout and rate limit values these functions enforce
-- [Tools and CLI reference](../tools/)—the input/output contracts exposed by the adapters
+- [Configuration](../configure/): the timeout and rate limit values these functions enforce
+- [Tools and CLI reference](../tools/): the input/output contracts exposed by the adapters

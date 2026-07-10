@@ -34,7 +34,7 @@ Or, for a Model Context Protocol (MCP) client, pass it through the `env` field o
 
 ## Built-in limits
 
-These values are compiled into the binary. Changing them requires a code change—they aren't environment variables or flags. They're documented here so you know the server's behavior.
+These values are compiled into the binary. Changing them requires a code change; they aren't environment variables or flags. They're documented here so you know the server's behavior.
 
 ### HTTP timeouts
 
@@ -75,9 +75,9 @@ The index parser uses a 1 MiB line buffer (versus Go's 64 KiB default) so long i
 - **Host:** `grafana.com`
 - **Path:** under `/docs/`
 
-The check runs twice—on the original URL and again after the `.md` suffix is added—to prevent path manipulation. Redirects to any non-`grafana.com` host are blocked.
+The check runs twice, on the original URL and again after the `.md` suffix is added, to prevent path manipulation. Redirects to any non-`grafana.com` host are blocked.
 
 ## Related resources
 
-- [Install and configure](../install/)—passing `DOCS_INDEX_URL` through client configuration, plus troubleshooting startup and index errors
-- [Integrate the core library](../integrate/)—how these limits apply when you import the core
+- [Install and configure](../install/): passing `DOCS_INDEX_URL` through client configuration, plus troubleshooting startup and index errors
+- [Integrate the core library](../integrate/): how these limits apply when you import the core

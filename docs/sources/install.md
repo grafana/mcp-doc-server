@@ -67,13 +67,13 @@ mcp-doc-server 0.1.0: loading index from https://grafana.com/llms-full.txt
 index loaded: 6645 entries, 24 products
 ```
 
-There's no prompt after that — the server is ready and waiting for your MCP client to connect. The index is approximately 2 MB and typically loads in 1–3 seconds.
+There's no prompt after that. The server is ready and waiting for your MCP client to connect. The index is approximately 2 MB and typically loads in 1–3 seconds.
 
 The server supports stdio transport only. It communicates over stdin/stdout using the MCP JSON-RPC protocol. HTTP and SSE transports are not supported.
 
 ## Connect your client
 
-Add mcp-doc-server to your client's MCP configuration. The JSON structure is the same for every client — only the file location differs:
+Add mcp-doc-server to your client's MCP configuration. The JSON structure is the same for every client. Only the file location differs:
 
 ```json
 {
@@ -85,13 +85,13 @@ Add mcp-doc-server to your client's MCP configuration. The JSON structure is the
 }
 ```
 
-Use an absolute path to the binary. If you used `go install`, the path is typically `<GOPATH>/bin/mcp-doc-server` — run `go env GOPATH` to find it.
+Use an absolute path to the binary. If you used `go install`, the path is typically `<GOPATH>/bin/mcp-doc-server`. Run `go env GOPATH` to find it.
 
 Add this block to the configuration file for your client:
 
-- **Cursor** — `.cursor/mcp.json` in your project root. Confirm the connection in Cursor's MCP settings panel — `grafana-docs` should appear with its four tools.
-- **Claude Desktop** — `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows). Restart Claude Desktop after editing; the tools appear under the MCP tools menu.
-- **Claude Code** — `.claude/mcp.json` in your project root. Run `/mcp` in Claude Code to confirm `grafana-docs` is listed.
+- **Cursor**: `.cursor/mcp.json` in your project root. Confirm the connection in Cursor's MCP settings panel; `grafana-docs` should appear with its four tools.
+- **Claude Desktop**: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows). Restart Claude Desktop after editing; the tools appear under the MCP tools menu.
+- **Claude Code**: `.claude/mcp.json` in your project root. Run `/mcp` in Claude Code to confirm `grafana-docs` is listed.
 
 ### Run without a pre-built binary
 
@@ -142,7 +142,7 @@ Alerting rules             Grafana  https://grafana.com/docs/grafana/latest/aler
 ...
 ```
 
-Then confirm the client connection by asking your agent a question that needs a docs lookup — for example, "How does Loki retention work?" The agent should call `search_docs`, then `get_doc_outline` and `get_doc`, and cite a `grafana.com` URL.
+Then confirm the client connection by asking your agent a question that needs a docs lookup, for example, "How does Loki retention work?" The agent should call `search_docs`, then `get_doc_outline` and `get_doc`, and cite a `grafana.com` URL.
 
 For details on all tool parameters and output formats, refer to [Tools and CLI reference](../tools/).
 
@@ -153,7 +153,7 @@ For details on all tool parameters and output formats, refer to [Tools and CLI r
 | `go install` fails with "could not read Username" | The repo is internal (not public). Set `GOPRIVATE=github.com/grafana/*` and confirm you can access `github.com/grafana/mcp-doc-server` via SSH (`ssh -T git@github.com`). |
 | Build fails | Check your Go version is 1.25 or later (`go version`). |
 | Server exits on startup with an index error | The server can't reach `grafana.com`. Check network access and any proxy settings. |
-| `search` returns nothing | Usually a query mismatch. If every search is empty, the index failed to load — check the `stderr` startup logs. |
+| `search` returns nothing | Usually a query mismatch. If every search is empty, the index failed to load; check the `stderr` startup logs. |
 | `get_doc` fails mid-session | The index is cached in memory after startup, so `search_docs` and `list_products` continue working offline. However, `get_doc` and `get_doc_outline` fetch pages live and will return errors if the network drops. |
 | Tools don't appear in the client | The `command` path must be absolute, and the client must be restarted after editing its configuration. |
 | Permission denied running the binary | Run `chmod +x ./bin/mcp-doc-server` after building. |
@@ -161,5 +161,5 @@ For details on all tool parameters and output formats, refer to [Tools and CLI r
 
 ## Next steps
 
-- [Tools reference](../tools/)—tool parameters, CLI commands, and a full workflow example
-- [Configuration](../configure/)—environment variables and built-in limits
+- [Tools reference](../tools/): tool parameters, CLI commands, and a full workflow example
+- [Configuration](../configure/): environment variables and built-in limits

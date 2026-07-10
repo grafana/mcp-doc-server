@@ -68,5 +68,5 @@ For a full worked example of how an agent uses these tools, refer to [Tools and 
 
 ## Next steps
 
-- [Install and configure](../install/) — Build the server and connect it to Cursor, Claude Desktop, or Claude Code
-- [Tools reference](../tools/) — Tool parameters, output formats, and CLI usage
+- [Install and configure](../install/): Build the server and connect it to Cursor, Claude Desktop, or Claude Code
+- [Tools reference](../tools/): Tool parameters, output formats, and CLI usage
