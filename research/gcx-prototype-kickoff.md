@@ -15,8 +15,8 @@ production merge — keep it on a branch.
 
 ### Repos
 
-- Working repo: `/Users/kim-nylander/Repositories/gcx` (module `github.com/grafana/gcx`)
-- Dependency: `/Users/kim-nylander/Repositories/mcp-doc-server`
+- Working repo: `<PATH TO CHECKOUT>/gcx` (module `github.com/grafana/gcx`)
+- Dependency: `<PATH TO CHECKOUT>/mcp-doc-server`
   (module `github.com/grafana/mcp-doc-server`) — DO NOT modify this repo.
 
 ### Wiring the dependency (it's unpublished)
@@ -24,7 +24,7 @@ production merge — keep it on a branch.
 Add a local replace in gcx's `go.mod`, then `go mod tidy`:
 
     require github.com/grafana/mcp-doc-server v0.0.0
-    replace github.com/grafana/mcp-doc-server => /Users/kim-nylander/Repositories/mcp-doc-server
+    replace github.com/grafana/mcp-doc-server => <PATH TO CHECKOUT>/mcp-doc-server
 
 Import ONLY the core: `github.com/grafana/mcp-doc-server/pkg/grafanadocs`.
 Do NOT import `pkg/grafanadocs/cli` — re-skin it with gcx's own output system instead.
