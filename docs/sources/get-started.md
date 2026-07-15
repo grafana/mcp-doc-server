@@ -15,7 +15,7 @@ Run the CLI to search, outline, and fetch Grafana documentation before you insta
 
 You need:
 
-- Go 1.25 or later
+- Go 1.26 or later
 - Access to the `github.com/grafana` GitHub organization (the repository is internal)
 - Network access to `grafana.com`
 

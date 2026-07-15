@@ -100,7 +100,7 @@ own tags. This keeps the core free of framework opinions.
   with 1-indexed position metadata.
 
 ### Config & runtime
-- **Go version:** 1.24+ (floor); mcp-grafana currently uses 1.26.3.
+- **Go version:** 1.26.5 (matches `go.mod`).
 - **`mcp-go` version:** v0.55.0 (standalone server uses latest; core has no mcp-go dep).
 - **Module path:** `github.com/grafana/mcp-doc-server`.
 - **Transport:** stdio in v1.

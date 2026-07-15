@@ -15,7 +15,7 @@ Build mcp-doc-server and connect it to your Model Context Protocol (MCP) client.
 
 You need:
 
-- Go 1.25 or later
+- Go 1.26 or later
 - Network access to `grafana.com` (for the index and doc pages)
 - An MCP-compatible client (Cursor, Claude Desktop, Claude Code, or any stdio client)
 
@@ -139,7 +139,7 @@ For details on all tool parameters and output formats, refer to [Tools and CLI r
 
 | Symptom | Fix |
 |---------|-----|
-| Build fails | Check your Go version is 1.25 or later (`go version`). |
+| Build fails | Check your Go version is 1.26 or later (`go version`). |
 | Server exits on startup with an index error | The server can't reach `grafana.com`. Check network access and any proxy settings. |
 | `search` returns nothing | Usually a query mismatch. If every search is empty, the index failed to load; check the `stderr` startup logs. |
 | `get_doc` fails mid-session | The index is cached in memory after startup, so `search_docs` and `list_products` continue working offline. However, `get_doc` and `get_doc_outline` fetch pages live and will return errors if the network drops. |

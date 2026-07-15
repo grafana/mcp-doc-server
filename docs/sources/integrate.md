@@ -30,7 +30,7 @@ For the timeout, rate-limit, and body-size values these packages enforce, refer 
 
 You need:
 
-- A Go module (Go 1.25+)
+- A Go module (Go 1.26+)
 - Network access to `grafana.com`
 
 ## Add the dependency
