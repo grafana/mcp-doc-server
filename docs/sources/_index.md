@@ -18,10 +18,6 @@ Agents search, browse, and retrieve current documentation from `grafana.com/docs
 Use mcp-doc-server to give an AI agent or LLM direct access to official Grafana documentation during a conversation, so it reads the actual content instead of guessing. 
 Compared to a general web search, the agent gets ranked pages from `grafana.com/docs` and fetches just the section it needs as clean, citable Markdown, at a lower token cost than loading full pages.
 
-{{< admonition type="note" >}}
-mcp-doc-server is an internal Grafana Labs project. The [source repository](https://github.com/grafana/mcp-doc-server) is internal and requires Grafana GitHub organization membership.
-{{< /admonition >}}
-
 ## Who it's for
 
 mcp-doc-server is for engineers and technical writers who work with Grafana products and drive an MCP client such as Cursor, Claude Desktop, or Claude Code. Go developers can also embed the core library directly in their own projects. Refer to [Integrate the core library](integrate/).

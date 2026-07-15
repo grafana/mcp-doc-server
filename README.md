@@ -8,11 +8,11 @@ Run it as a standalone MCP server in a client such as Cursor, Claude Desktop, or
 
 **When to use it:** Use these tools to give an AI agent or LLM direct access to official Grafana documentation during a conversation, so it reads the actual content instead of guessing. Compared to a general web search, the agent gets ranked pages from `grafana.com/docs` and fetches just the section it needs as clean, citable Markdown, at a lower token cost than loading full pages.
 
-> **Internal project.** This repository is internal and requires Grafana GitHub organization membership. Refer to the [documentation](https://grafana.com/docs/mcp-doc-server/latest/) for full usage instructions.
+Refer to the [documentation](https://grafana.com/docs/mcp-doc-server/latest/) for full usage instructions.
 
 ## Quick start
 
-Install the server and CLI (requires `GOPRIVATE=github.com/grafana/*`):
+Install the server and CLI:
 
 ```bash
 go install github.com/grafana/mcp-doc-server/cmd/mcp-doc-server@latest
