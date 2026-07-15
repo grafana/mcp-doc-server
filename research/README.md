@@ -16,9 +16,6 @@ specs these notes feed into.
   Learn, Elastic, GitMCP, mcpdoc, Grounded Docs, Rust Docs), the recurring patterns
   (remote HTTP, `llms.txt`, resolve→fetch, tool-count discipline), and the lessons,
   borrowings, and risks for `mcp-doc-server` — plus where it sits in the landscape.
-- **[elastic-docs-mcp.md](elastic-docs-mcp.md)** — prior art: Elastic's hosted docs MCP
-  server (tools, hosted HTTP model, coherence tools), with a side-by-side comparison and
-  takeaways for our design.
 - **[mcp-inspector.md](mcp-inspector.md)** — tooling: the MCP Inspector for testing and
   debugging our server (UI vs CLI mode, how to run it against our stdio binary, security
   considerations).

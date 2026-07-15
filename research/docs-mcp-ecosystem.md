@@ -30,8 +30,7 @@ decision log.
   `microsoft_docs_fetch` (page → markdown), `microsoft_code_sample_search`. Remote HTTP
   (`https://learn.microsoft.com/api/mcp`), built into Visual Studio 2022+. TypeScript.
 - **Elastic Docs MCP** (part of
-  [elastic/docs-builder](https://github.com/elastic/docs-builder)) — covered in depth in
-  [`elastic-docs-mcp.md`](elastic-docs-mcp.md). Hosted Streamable HTTP
+  [elastic/docs-builder](https://github.com/elastic/docs-builder)) — hosted Streamable HTTP
   (`https://www.elastic.co/docs/_mcp/`); 6 tools including semantic `search_docs`,
   `find_related_docs`, `analyze_document_structure`, and distinctive coherence/consistency
   tools. AI summaries + relevance scores + navigation context.

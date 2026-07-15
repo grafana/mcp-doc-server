@@ -269,12 +269,6 @@ its own agent annotations.
 
 Supporting research is in the [`research/`](research/) folder:
 
-- [`elastic-docs-mcp.md`](research/elastic-docs-mcp.md) — Elastic's hosted docs MCP
-  server (`https://www.elastic.co/docs/_mcp/`): 6 tools including semantic search, AI
-  summaries, and coherence/inconsistency checks. Comparison table against mcp-doc-server
-  invariants; ideas worth borrowing (`find_related_docs`, navigation context, hosted HTTP
-  option) and deliberate differences (no server-side inference, bounded slices, version
-  awareness).
 - [`docs-mcp-server-use-cases.md`](research/docs-mcp-server-use-cases.md) — Recurring
   use-case patterns for docs MCP servers (grounding, version-aware lookups, citations,
   token-efficient retrieval, product discovery, deterministic retrieval in agentic
