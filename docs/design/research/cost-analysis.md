@@ -31,14 +31,14 @@ Every number in this document is tagged as one of three kinds:
 
 | Figure | Value | Source |
 |--------|-------|--------|
-| Server-side inference cost | 0 | Invariant I2 in [SPECS.md](../SPECS.md) |
-| `search_docs` response budget | <= ~600 tokens | [BENCHMARKS.md](../BENCHMARKS.md) |
-| `get_doc_outline` budget | <= ~400 tokens | [BENCHMARKS.md](../BENCHMARKS.md) |
-| `get_doc` default slice | <= ~2,000 tokens (80 lines) | [BENCHMARKS.md](../BENCHMARKS.md), invariant I4 |
-| Index size | ~1.3 MB, ~6,879 entries | [BENCHMARKS.md](../BENCHMARKS.md) |
-| Index parse time | < 250 ms (one-time) | [BENCHMARKS.md](../BENCHMARKS.md) |
-| `search_docs` latency | < 10 ms (in-memory) | [BENCHMARKS.md](../BENCHMARKS.md) |
-| Rate limits | 5 concurrent, 200 ms gap | Invariant I9, [configure.md](../docs/sources/configure.md) |
+| Server-side inference cost | 0 | Invariant I2 in [SPECS.md](../../../SPECS.md) |
+| `search_docs` response budget | <= ~600 tokens | [BENCHMARKS.md](../../../BENCHMARKS.md) |
+| `get_doc_outline` budget | <= ~400 tokens | [BENCHMARKS.md](../../../BENCHMARKS.md) |
+| `get_doc` default slice | <= ~2,000 tokens (80 lines) | [BENCHMARKS.md](../../../BENCHMARKS.md), invariant I4 |
+| Index size | ~1.3 MB, ~6,879 entries | [BENCHMARKS.md](../../../BENCHMARKS.md) |
+| Index parse time | < 250 ms (one-time) | [BENCHMARKS.md](../../../BENCHMARKS.md) |
+| `search_docs` latency | < 10 ms (in-memory) | [BENCHMARKS.md](../../../BENCHMARKS.md) |
+| Rate limits | 5 concurrent, 200 ms gap | Invariant I9, [configure.md](../../sources/configure.md) |
 | Body caps | 2 MiB doc, 10 MiB index | Invariant I10 |
 | Token reduction vs full page | ~10x | [demo/scenarios/02-token-efficient-retrieval.md](../demo/scenarios/02-token-efficient-retrieval.md) |
 

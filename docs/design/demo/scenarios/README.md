@@ -45,5 +45,5 @@ go build -o bin/docs ./cmd/docs/
 Or run the full demo script:
 
 ```bash
-./demo/run-demo.sh
+./docs/design/demo/run-demo.sh
 ```

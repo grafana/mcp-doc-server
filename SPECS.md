@@ -267,9 +267,9 @@ its own agent annotations.
 
 ## Research & prior art
 
-Supporting research is in the [`research/`](research/) folder:
+Supporting research is in the [`docs/design/research/`](docs/design/research/) folder:
 
-- [`docs-mcp-server-use-cases.md`](research/docs-mcp-server-use-cases.md) — Recurring
+- [`docs-mcp-server-use-cases.md`](docs/design/research/docs-mcp-server-use-cases.md) — Recurring
   use-case patterns for docs MCP servers (grounding, version-aware lookups, citations,
   token-efficient retrieval, product discovery, deterministic retrieval in agentic
   workflows, onboarding/troubleshooting assistants, server-side index isolation) mapped to
