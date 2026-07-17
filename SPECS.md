@@ -218,28 +218,27 @@ own tags. This keeps the core free of framework opinions.
 
 ### Closed questions
 
-- **gcx integration form** *(closed 2026-06-23, `NOTES.md` 18):* subcommand group
-  (`gcx docs search/get/outline/products`). gcx imports the core only and writes its own
-  CLI layer with `output.Options` and agent annotations, exactly as predicted by `NOTES.md`
-  entry 11. Not an agent skill.
+- **CLI consumer integration form** *(closed 2026-06-23, `NOTES.md` 18):* subcommand
+  group (`<host> docs search/get/outline/products`). The host CLI imports the core only
+  and writes its own output/annotation layer, as predicted by `NOTES.md` entry 11.
 - **Index lifecycle in consumers** *(closed 2026-06-23, `NOTES.md` 18):* lazy `sync.Once`
-  on first subcommand that needs the index (`search`, `products`). Commands that only need
-  `FetchDoc` (`get`, `outline`) never trigger the load. The standalone CLI (`cmd/docs`)
-  loads on demand at startup. Background refresh is deferred to the caching question.
-- **mcp-grafana integration form** *(closed 2026-06-23, `NOTES.md` 19):* `tools/docs.go`
-  registering four tools (`search_docs`, `get_doc`, `get_doc_outline`, `list_products`) via
-  `mcpgrafana.MustTool` + `AddDocsTools` + a `toolEntries()` row, matching all 30+ existing
-  tool categories. Imports the core only (`pkg/grafanadocs`); the MCP adapter is not used.
-  Index loaded lazily via `sync.Once` on first `search_docs`/`list_products` call (`get_doc`
-  and `get_doc_outline` only call `FetchDoc`, so they never trigger the load), with a
-  `DOCS_INDEX_URL` env var override mirroring the standalone server. Consumer lint finding:
-  mcp-grafana's `tools/` package enforces `golangci-lint` `sloglint` with `no-global: "all"`,
-  so tool handlers must not use the default `slog` logger.
+  on first subcommand that needs the index (`search`, `products`). Commands that only
+  need `FetchDoc` (`get`, `outline`) never trigger the load. The standalone CLI
+  (`cmd/docs`) loads on demand at startup. Background refresh is deferred to the caching
+  question.
+- **MCP consumer integration form** *(closed 2026-06-23, `NOTES.md` 19):* the host MCP
+  server registers four tools (`search_docs`, `get_doc`, `get_doc_outline`,
+  `list_products`) using its own tool-registration helpers, and imports the core only
+  (`pkg/grafanadocs`); the MCP adapter is not used. Index loaded lazily via `sync.Once`
+  on first `search_docs`/`list_products` call. `get_doc` and `get_doc_outline` only call
+  `FetchDoc`, so they never trigger the load. `DOCS_INDEX_URL` env var override mirrors
+  the standalone server. Tool handlers should not use the default `slog` logger; let
+  errors propagate and leave logging to the host.
 
 ### CLI adapter surface (`pkg/grafanadocs/cli`)
 A mountable cobra `docs` command group, exported as `Command(idx *grafanadocs.Index)
 *cobra.Command`. The caller owns the index lifecycle; the adapter is stateless and
-imports only `cobra`/`pflag` and the core (no gcx internals). Command grammar:
+imports only `cobra`/`pflag` and the core. Command grammar:
 - `docs search <query> [--product=...] [--limit=5] [-o text|json|yaml|agents]`
 - `docs get <url> [--section=...] [--offset=0] [--limit=0] [-o ...]`
 - `docs outline <url> [-o ...]`
@@ -248,9 +247,9 @@ imports only `cobra`/`pflag` and the core (no gcx internals). Command grammar:
 Output formats: `text` (default, aligned table / raw markdown for `get`), `json`
 (indented), `agents` (compact JSON), `yaml`. JSON/YAML keys mirror the MCP adapter so
 both surfaces are consistent. Empty `search` results print guidance to stderr (I13);
-stdout stays a clean, parseable result set. gcx mounts this by swapping the local
-`output` helper for gcx's `output.Options` (package `internal/output`) and registering
-its own agent annotations.
+stdout stays a clean, parseable result set. A host CLI mounts this by swapping the
+local `output` helper for its own output system and registering its own agent
+annotations.
 
 ## Implemented packages
 
@@ -259,8 +258,9 @@ its own agent annotations.
   types, no MCP/CLI deps.
 - **`pkg/grafanadocs/mcp`** (MCP adapter): exposes tools on `mark3labs/mcp-go`, handles
   validation errors and empty-result guidance.
-- **`pkg/grafanadocs/cli`** (cobra adapter): mountable `docs` command group for gcx /
-  standalone CLI use; opts + custom text codecs + structured (json/yaml/agents) output.
+- **`pkg/grafanadocs/cli`** (cobra adapter): mountable `docs` command group for
+  standalone or embedded CLI use; opts + custom text codecs + structured
+  (json/yaml/agents) output.
 - **`cmd/mcp-doc-server`**: standalone MCP server (stdio, loads index at startup).
 - **`cmd/docs`**: standalone CLI running the cobra adapter (loads index on demand;
   help/completion skip the fetch).

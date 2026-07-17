@@ -86,21 +86,20 @@ docs products
 
 Or from source: `go run ./cmd/docs/ <command>`
 
-### With gcx (cobra adapter)
+### Mount as a subcommand in another cobra CLI
 
-`pkg/grafanadocs/cli` exposes a mountable `docs` command group. In gcx's root command:
+`pkg/grafanadocs/cli` exposes a mountable `docs` command group:
 
 ```go
 import "github.com/grafana/mcp-doc-server/pkg/grafanadocs/cli"
 
-rootCmd.AddCommand(cli.Command(idx)) // adds `gcx docs search|get|outline|products`
+rootCmd.AddCommand(cli.Command(idx)) // adds `<host> docs search|get|outline|products`
 ```
 
-The adapter imports only `cobra`/`pflag` + the core (no gcx internals). To go fully
-gcx-native, swap the local output helper for gcx's `output.Options` (package
-`internal/output`) and register agent annotations from gcx's own registry. The command
-shells already follow gcx's `opts`/`setup`/`Validate` pattern, so the change is
-mechanical. See [NOTES.md](NOTES.md) entries 16–17.
+The adapter imports only `cobra`/`pflag` and the core. To integrate with a host CLI's
+own output system and agent annotations, swap the local output helper and register the
+host's annotations. The command shells follow a plain `opts`/`setup`/`Validate` pattern,
+so the change is mechanical.
 
 ### With the Grafana MCP server (mcp-grafana)
 
