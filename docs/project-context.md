@@ -31,8 +31,8 @@ This file is used as a pointer file for AI and agents, especiallly used for docu
 | `pkg/grafanadocs/cli/` | `SPECS.md` §CLI adapter surface |
 | `cmd/mcp-doc-server/` | `SPECS.md` §Config & runtime |
 | `cmd/docs/` | `SPECS.md` §CLI adapter surface |
-| `demo/` | `demo/README.md` (standalone demo docs) |
-| `research/` | `research/README.md` (prior art and analysis) |
+| `docs/design/demo/` | `docs/design/demo/README.md` (standalone demo docs) |
+| `docs/design/research/` | `docs/design/research/README.md` (prior art and analysis) |
 
 ## Code validation paths
 

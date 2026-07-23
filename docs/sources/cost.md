@@ -32,6 +32,6 @@ These figures cover documentation retrieval only, not the agent's total token us
 
 ## Related resources
 
-- For a full cost breakdown (server footprint, comparison with other retrieval approaches, scale projections, and methodology), refer to `research/cost-analysis.md` in the repository.
+- For a full cost breakdown (server footprint, comparison with other retrieval approaches, scale projections, and methodology), refer to `docs/design/research/cost-analysis.md` in the repository.
 - [Tools and CLI reference](../tools/): the search, outline, and fetch workflow
 - [Configuration](../configure/): built-in limits, including outbound rate limiting

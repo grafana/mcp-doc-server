@@ -15,7 +15,7 @@ Run the CLI to search, outline, and fetch Grafana documentation before you insta
 
 You need:
 
-- Go 1.25 or later
+- Go 1.26 or later
 - Access to the `github.com/grafana` GitHub organization (the repository is internal)
 - Network access to `grafana.com`
 
@@ -57,12 +57,12 @@ The output is cleaned Markdown with front matter, shortcodes, and HTML comments 
 The repository includes a demo script that exercises all four tools with live output:
 
 ```bash
-./demo/run-demo.sh
+./docs/design/demo/run-demo.sh
 ```
 
 The script walks through `list_products`, `search_docs`, `get_doc_outline`, and `get_doc` (bounded and section-scoped), plus JSON output mode.
 
-The `demo/scenarios/` directory in the repository has full agent workflows: grounding answers, token-efficient retrieval, configuration lookups during coding, and more.
+The `docs/design/demo/scenarios/` directory in the repository has full agent workflows: grounding answers, token-efficient retrieval, configuration lookups during coding, and more.
 
 For a full worked example of how an agent uses these tools, refer to [Tools and CLI reference](../tools/#workflow).
 

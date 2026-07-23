@@ -11,32 +11,21 @@ versionDate: 2026-06-25
 
 Build mcp-doc-server and connect it to your Model Context Protocol (MCP) client. The server works exclusively with Grafana Labs docs served from `grafana.com/docs/`.
 
-{{< admonition type="note" >}}
-mcp-doc-server is an internal Grafana Labs project. The repository at `github.com/grafana/mcp-doc-server` is internal and requires Grafana GitHub organization access.
-{{< /admonition >}}
-
 ## Before you begin
 
 You need:
 
-- Go 1.25 or later
+- Go 1.26 or later
 - Network access to `grafana.com` (for the index and doc pages)
-- Access to the `github.com/grafana` GitHub organization (the repository is internal)
 - An MCP-compatible client (Cursor, Claude Desktop, Claude Code, or any stdio client)
 
 ## Install with `go install`
 
-If your Go environment is configured to access internal Grafana repositories, install both binaries directly:
+Install both binaries directly:
 
 ```bash
 go install github.com/grafana/mcp-doc-server/cmd/mcp-doc-server@latest
 go install github.com/grafana/mcp-doc-server/cmd/docs@latest
-```
-
-This requires `GOPRIVATE` to include the module path. Add it to your shell profile if you haven't already:
-
-```bash
-go env -w GOPRIVATE=github.com/grafana/*
 ```
 
 The binaries are installed to `$(go env GOPATH)/bin/`. Make sure that directory is in your `PATH`.
@@ -150,8 +139,7 @@ For details on all tool parameters and output formats, refer to [Tools and CLI r
 
 | Symptom | Fix |
 |---------|-----|
-| `go install` fails with "could not read Username" | The repo is internal (not public). Set `GOPRIVATE=github.com/grafana/*` and confirm you can access `github.com/grafana/mcp-doc-server` via SSH (`ssh -T git@github.com`). |
-| Build fails | Check your Go version is 1.25 or later (`go version`). |
+| Build fails | Check your Go version is 1.26 or later (`go version`). |
 | Server exits on startup with an index error | The server can't reach `grafana.com`. Check network access and any proxy settings. |
 | `search` returns nothing | Usually a query mismatch. If every search is empty, the index failed to load; check the `stderr` startup logs. |
 | `get_doc` fails mid-session | The index is cached in memory after startup, so `search_docs` and `list_products` continue working offline. However, `get_doc` and `get_doc_outline` fetch pages live and will return errors if the network drops. |

@@ -6,12 +6,12 @@
 # ┃  each step, or run with --auto for timed delays.               ┃
 # ┃                                                                ┃
 # ┃  Usage:                                                        ┃
-# ┃    ./demo/walkthrough.sh          # interactive (Enter key)    ┃
-# ┃    ./demo/walkthrough.sh --auto   # auto-paced (3s delays)    ┃
+# ┃    ./docs/design/demo/walkthrough.sh          # interactive     ┃
+# ┃    ./docs/design/demo/walkthrough.sh --auto   # auto-paced      ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 set -uo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 DOCS="$REPO_ROOT/bin/docs"
 GCX="${GCX_BIN:-/tmp/gcx-demo}"
 AUTO=false

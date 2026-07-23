@@ -16,21 +16,15 @@ specs these notes feed into.
   Learn, Elastic, GitMCP, mcpdoc, Grounded Docs, Rust Docs), the recurring patterns
   (remote HTTP, `llms.txt`, resolve→fetch, tool-count discipline), and the lessons,
   borrowings, and risks for `mcp-doc-server` — plus where it sits in the landscape.
-- **[elastic-docs-mcp.md](elastic-docs-mcp.md)** — prior art: Elastic's hosted docs MCP
-  server (tools, hosted HTTP model, coherence tools), with a side-by-side comparison and
-  takeaways for our design.
 - **[mcp-inspector.md](mcp-inspector.md)** — tooling: the MCP Inspector for testing and
   debugging our server (UI vs CLI mode, how to run it against our stdio binary, security
   considerations).
 - **[mcp-go-sdk.md](mcp-go-sdk.md)** — tooling: the official MCP Go SDK as the likely SDK
   choice (packages, spec compatibility, minimal stdio server, schema-from-struct-tags), and
   the `SPECS.md` open questions it resolves.
-- **[gcx-integration-patterns.md](gcx-integration-patterns.md)** — how `grafana/gcx`
-  structures commands, output (`output.Options`/`format.Codec`), agent annotations, and
-  external-library wrapping; the basis for the `pkg/grafanadocs/cli` adapter design.
-- **[gcx-prototype-kickoff.md](gcx-prototype-kickoff.md)** — a paste-ready kickoff prompt
-  for a fresh chat that mounts a `gcx docs` command on mcp-doc-server's core in a gcx
-  branch (dependency wiring, gcx-native swaps, index-lifecycle decision, verification).
+- **[gcx-integration-patterns.md](gcx-integration-patterns.md)** — the CLI patterns
+  (command structure, output codecs, external-library wrapping) that informed the
+  `pkg/grafanadocs/cli` adapter design.
 
 ## Status
 
