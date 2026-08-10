@@ -1,10 +1,10 @@
-# SPECS — mcp-doc-server
+# SPECS: mcp-doc-server
 
 Source of truth for the behavior of `mcp-doc-server`: a Go MCP server that gives
 AI agents version-aware access to Grafana Labs product documentation.
 
 This is a **living document**. It captures what we have actually decided so far and
-explicitly marks what is still open. It grows as we make decisions — we do not invent
+explicitly marks what is still open. It grows as we make decisions; we do not invent
 contracts we have not agreed on. The goal is that, over time, `SPECS.md` + `NOTES.md` +
 `TESTS.md` + `BENCHMARKS.md` become complete enough to wipe the code and rebuild from
 specs alone. Until then, **Open questions** below tracks what is undecided.
@@ -22,39 +22,39 @@ annotate instead). See `AGENTS.md` for the SDD convention and `NOTES.md` for dec
   (`NOTES.md` 2, 8).
 
 ### Sources
-- **Index:** `https://grafana.com/llms-full.txt` — an official machine-readable index.
+- **Index:** `https://grafana.com/llms-full.txt`, an official machine-readable index.
   Format: `## <Product> [Dd]ocumentation` headers grouping bullet entries of the form
   `- [Title](https://grafana.com/....md): description`. Parse rules:
   - Product name = header text with trailing " documentation"/" Documentation" stripped.
   - Entry regex: `^- \[([^\]]+)\]\(([^)]+)\)(?::\s*(.*))?$`
   - Entries with non-`https://grafana.com/` URLs are silently dropped (I11).
   - "Documentation home" and "Copyright notice" sections are excluded (I12).
-- **Fetch:** the `.md` trick — appending `.md` to a docs URL path returns
+- **Fetch:** the `.md` trick, appending `.md` to a docs URL path returns
   `text/markdown`. The suffix is applied to the parsed path component (not raw string)
   so fragments and query parameters are preserved (I16).
 
 ### Architecture: reusable core + thin adapters (`NOTES.md` 3, 10, 11)
 - A **public, dependency-light core package** (`pkg/grafanadocs`) holds the retrieval
-  logic and plain Go types — the primary integration surface for all consumers. The core
+  logic and plain Go types: the primary integration surface for all consumers. The core
   must NOT live under `internal/` (Go forbids cross-module `internal` imports) and must
   not depend on the MCP SDK or cobra.
 - **Opt-in adapters wrap the core** for our standalone server:
-  - an **MCP adapter** (`pkg/grafanadocs/mcp`) on `github.com/mark3labs/mcp-go` v0.55.0;
+  - an **MCP adapter** (`pkg/grafanadocs/mcp`) on `github.com/mark3labs/mcp-go` v0.57.0;
   - a **cobra adapter** (`pkg/grafanadocs/cli`) for standalone CLI use.
 - **Consumer integration model (`NOTES.md` 11):** `grafana/mcp-grafana` and `grafana/gcx`
-  import the **core only** and write their own idiomatic wrappers — mcp-grafana writes a
+  import the **core only** and write their own idiomatic wrappers: mcp-grafana writes a
   `tools/docs.go` using `MustTool`; gcx writes `cmd/gcx/docs/` using `output.Options`.
   The adapters serve our standalone server and generic consumers, not the two primary
   integration targets.
 - Our standalone **MCP server** (stdio) is one consumer of the MCP adapter.
 
 ### Tools (snake_case, matching mcp-grafana convention)
-- `search_docs` — find relevant docs (returns title, url, description, product).
-- `get_doc` — fetch a doc's markdown; supports section-by-heading and offset/limit paging.
-- `get_doc_outline` — cheap heading outline so an agent can target a section.
-- `list_products` — the product groups from the index.
+- `search_docs`: find relevant docs (returns title, url, description, product).
+- `get_doc`: fetch a doc's markdown; supports section-by-heading and offset/limit paging.
+- `get_doc_outline`: cheap heading outline so an agent can target a section.
+- `list_products`: the product groups from the index.
 
-### Tool schemas (initial — may evolve during implementation)
+### Tool schemas (initial; may evolve during implementation)
 - **`search_docs`:** Input `{query: string, product?: string, limit?: int (default 5)}`.
   Output: list of `{title, url, description, product}`.
 - **`get_doc`:** Input `{url: string, section?: string, offset?: int, limit?: int}`.
@@ -65,7 +65,7 @@ annotate instead). See `AGENTS.md` for the SDD convention and `NOTES.md` for dec
   Output: `{products: [{name: string, count: int}]}`.
 
 ### Core API surface (`pkg/grafanadocs`)
-Exported functions — plain Go, zero framework deps (stdlib + `net/http`):
+Exported functions, all plain Go with zero framework deps (stdlib + `net/http`):
 - `LoadIndex(ctx context.Context, url string) (*Index, error)`
 - `LoadIndexFromReader(r io.Reader) (*Index, error)`
 - `Search(idx *Index, query string, opts SearchOpts) []Entry`
@@ -77,31 +77,31 @@ Exported functions — plain Go, zero framework deps (stdlib + `net/http`):
 - `Excerpt(doc *Doc, opts ExcerptOpts) ExcerptResult`
 
 ### Core data types
-Plain Go structs with no `json` tags — the core is serialization-agnostic by design.
+Plain Go structs with no `json` tags; the core is serialization-agnostic by design.
 Consumers that need JSON output (gcx, MCP adapter) write thin wrapper types with their
 own tags. This keeps the core free of framework opinions.
 
-- `Entry{Title string, URL string, Description string, Product string}` — a single
+- `Entry{Title string, URL string, Description string, Product string}`: a single
   documentation page from the index.
-- `Product{Name string, Count int}` — a documentation group with its entry count.
-- `Index{Entries []Entry, products []Product, idf map[string]float64}` — the parsed
+- `Product{Name string, Count int}`: a documentation group with its entry count.
+- `Index{Entries []Entry, products []Product, idf map[string]float64}`: the parsed
   documentation catalog; safe for concurrent read access after construction. `products`
   and `idf` are unexported; accessed via `Products()` and used internally by `Search`.
-- `Doc{URL string, Content []byte, Lines []string}` — a fetched and cleaned documentation
+- `Doc{URL string, Content []byte, Lines []string}`: a fetched and cleaned documentation
   page. `Lines` is computed lazily via `EnsureLines()` and automatically recomputed if
   `Content` has changed since the last call.
-- `Heading{Level int, Text string, Line int}` — a markdown heading with its 1-indexed
+- `Heading{Level int, Text string, Line int}`: a markdown heading with its 1-indexed
   line position.
-- `SearchOpts{Product string, Limit int}` — controls search behavior. `Product` filters
+- `SearchOpts{Product string, Limit int}`: controls search behavior. `Product` filters
   to a specific product (empty = all); `Limit` caps results (0 = default 5).
-- `ExcerptOpts{Section string, Offset int, Limit int}` — controls bounded retrieval.
+- `ExcerptOpts{Section string, Offset int, Limit int}`: controls bounded retrieval.
   `Section` extracts by heading text; when empty, `Offset`/`Limit` do line-based paging.
-- `ExcerptResult{Content string, Start int, End int, Total int}` — the excerpted content
+- `ExcerptResult{Content string, Start int, End int, Total int}`: the excerpted content
   with 1-indexed position metadata.
 
 ### Config & runtime
 - **Go version:** 1.26.5 (matches `go.mod`).
-- **`mcp-go` version:** v0.55.0 (standalone server uses latest; core has no mcp-go dep).
+- **`mcp-go` version:** v0.57.0 (standalone server uses latest; core has no mcp-go dep).
 - **Module path:** `github.com/grafana/mcp-doc-server`.
 - **Transport:** stdio in v1.
 - **License:** Apache 2.0 (matches mcp-grafana and gcx).
@@ -111,21 +111,21 @@ own tags. This keeps the core free of framework opinions.
 
 ## Invariants (committed)
 
-- **I1 — Index stays server-side.** The parsed index is never returned to the model; only
+- **I1. Index stays server-side.** The parsed index is never returned to the model; only
   `search_docs` result entries are.
-- **I2 — Zero added inference cost (v1).** No server-side LLM or embedding calls;
+- **I2. Zero added inference cost (v1).** No server-side LLM or embedding calls;
   retrieval is deterministic.
-- **I3 — Fetch allowlist.** `get_doc`/`get_doc_outline` fetch only canonical `grafana.com`
+- **I3. Fetch allowlist.** `get_doc`/`get_doc_outline` fetch only canonical `grafana.com`
   docs URLs; other URLs are rejected before any network call. Predicate:
   `scheme == "https" && host == "grafana.com" && path starts with "/docs/"`.
   Redirects to non-grafana hosts are also blocked.
-- **I4 — Bounded responses.** `get_doc` does not return an oversized full page by default;
+- **I4. Bounded responses.** `get_doc` does not return an oversized full page by default;
   it returns a bounded slice and reports the total size so the caller can read more.
-- **I5 — Citations.** Every response containing doc content includes its canonical source URL.
-- **I6 — Latest only (v1).** All served URLs resolve to the `latest` channel; a `version`
+- **I5. Citations.** Every response containing doc content includes its canonical source URL.
+- **I6. Latest only (v1).** All served URLs resolve to the `latest` channel; a `version`
   parameter is reserved but inert.
-- **I7 — Lean search.** `search_docs` defaults to a small result count and concise output.
-- **I8 — Cleanup preserves meaning.** Any markdown cleanup removes presentation/boilerplate
+- **I7. Lean search.** `search_docs` defaults to a small result count and concise output.
+- **I8. Cleanup preserves meaning.** Any markdown cleanup removes presentation/boilerplate
   only; documented content is unchanged. Blank-line collapsing runs *before* code blocks are
   restored, so intentional whitespace inside code blocks is preserved. Frontmatter, shortcode,
   and HTML comment stripping run together in a convergence loop so that removing one cannot
@@ -133,20 +133,20 @@ own tags. This keeps the core free of framework opinions.
   frontmatter block). Input line endings are normalized (CRLF/CR → LF) and the leading/trailing
   edge is trimmed up front so detection is pass-stable. `Cleanup` is idempotent:
   `Cleanup(Cleanup(x)) == Cleanup(x)` for all inputs.
-- **I9 — Rate-limited outbound.** `FetchDoc` enforces a concurrency cap (5) and minimum
+- **I9. Rate-limited outbound.** `FetchDoc` enforces a concurrency cap (5) and minimum
   gap (200ms) between requests to prevent abuse of grafana.com. Each `acquire` reserves a
   unique slot under the lock (advancing a `nextAllowed` cursor by the gap) and waits for it
   outside the lock, so N concurrent acquirers are spaced by the gap rather than all reading
   the same timestamp and proceeding together.
-- **I10 — Body size caps.** Doc fetches are limited to 2 MiB; index fetches to 10 MiB.
+- **I10. Body size caps.** Doc fetches are limited to 2 MiB; index fetches to 10 MiB.
   Prevents OOM from unexpected upstream responses.
-- **I11 — Index entry validation.** URLs parsed from the index must start with
+- **I11. Index entry validation.** URLs parsed from the index must start with
   `https://grafana.com/`; entries with other URLs are silently dropped at parse time.
-- **I12 — Non-product sections excluded.** "Documentation home" and "Copyright notice"
+- **I12. Non-product sections excluded.** "Documentation home" and "Copyright notice"
   sections from the index are not exposed as products or searchable entries.
-- **I13 — Actionable empty results.** When a tool returns no results, the response includes
+- **I13. Actionable empty results.** When a tool returns no results, the response includes
   guidance on what to try next (e.g., "use list_products", "use get_doc_outline").
-- **I14 — Code-fence-aware processing.** `Outline`, `excerptBySection`, and `Cleanup`
+- **I14. Code-fence-aware processing.** `Outline`, `excerptBySection`, and `Cleanup`
   all respect fenced code block boundaries via a shared `fenceInfo`/`fenceTracker`. Fences
   are matched per CommonMark: the marker is a run of 3+ backticks or tildes (indented ≤3
   spaces); a closing fence must use the same character, be at least as long as the opening
@@ -154,18 +154,18 @@ own tags. This keeps the core free of framework opinions.
   contains shorter fences (` ``` `) as literal content. Content inside code blocks is never
   modified: comment lines (e.g. `# comment`) must not be misidentified as headings, and HTML
   comments / Hugo shortcodes inside code blocks must not be stripped.
-- **I15 — Snake_case JSON keys.** All JSON output from the MCP adapter uses `snake_case`
+- **I15. Snake_case JSON keys.** All JSON output from the MCP adapter uses `snake_case`
   keys (e.g. `"title"`, `"url"`, `"level"`, `"name"`). The core types are intentionally
   tag-free; the MCP adapter owns the wire format via wrapper types with explicit `json` tags.
-- **I16 — URL-safe `.md` suffix.** The `.md` suffix logic operates on the parsed URL path,
+- **I16. URL-safe `.md` suffix.** The `.md` suffix logic operates on the parsed URL path,
   not the raw URL string. Fragments (`#section`), query parameters (`?v=1`), and trailing
-  slashes are handled correctly — the suffix is appended to the path only.
-- **I17 — MCP numeric input validation.** MCP handlers reject `NaN`, `Inf`, negative, and
+  slashes are handled correctly; the suffix is appended to the path only.
+- **I17. MCP numeric input validation.** MCP handlers reject `NaN`, `Inf`, negative, and
   out-of-range values for numeric parameters (`limit`, `offset`) with a descriptive error
   before passing them to the core. The `safeInt` helper converts `float64` → `int` only
   within `[0, 2^31]`; values above the cap are rejected so an out-of-range conversion (which
   is implementation-dependent in Go and can wrap to a negative int) cannot bypass validation.
-- **I18 — Product filter resolution precedence.** The `product` parameter on `search_docs`
+- **I18. Product filter resolution precedence.** The `product` parameter on `search_docs`
   resolves to canonical product names by trying match levels in order and stopping at the
   first that yields any match: exact (case-insensitive) → prefix → substring. A precise name
   selects exactly one product; a loose term still resolves (`"agent"` → `"Grafana Agent"`,
@@ -174,27 +174,27 @@ own tags. This keeps the core free of framework opinions.
   added. A filter that matches no product yields zero results.
   *Addendum (2026-06-23): supersedes the earlier exact-only rule (`strings.EqualFold`); see
   NOTE 28.*
-- **I19 — Index scheme validation.** `LoadIndex` only accepts `https` URLs. `file://`,
+- **I19. Index scheme validation.** `LoadIndex` only accepts `https` URLs. `file://`,
   `http://`, and other schemes are rejected before any network call.
-- **I20 — No orphan entries.** Entries appearing in the index before any `## Product`
+- **I20. No orphan entries.** Entries appearing in the index before any `## Product`
   header are silently dropped. Every indexed entry has a non-empty `Product`.
-- **I21 — Double allowlist check.** `FetchDoc` checks the allowlist on both the original
+- **I21. Double allowlist check.** `FetchDoc` checks the allowlist on both the original
   URL and the URL after `.md` suffix transformation, preventing path manipulation through
   the transform.
-- **I22 — User-Agent header.** All outbound HTTP requests include a `User-Agent:
+- **I22. User-Agent header.** All outbound HTTP requests include a `User-Agent:
   mcp-doc-server/0.1` header to identify the client to CDNs and WAFs.
-- **I23 — Unclosed fence safety.** If a fenced code block is never closed (e.g. from
+- **I23. Unclosed fence safety.** If a fenced code block is never closed (e.g. from
   body-size truncation), `extractCodeBlocks` treats the partial block as a protected code
   block in its original position rather than re-ordering it to the end.
-- **I24 — ATX heading semantics.** `parseHeading` follows CommonMark for ATX headings:
+- **I24. ATX heading semantics.** `parseHeading` follows CommonMark for ATX headings:
   (a) a line indented 4+ spaces is an indented code block, not a heading; (b) an optional
   trailing run of `#`s preceded by whitespace is a closing sequence and is stripped from the
   text (`## Storage ##` → `Storage`), while a `#` inside a word or not preceded by a space is
   preserved (`C#`, `foo#`); (c) a heading whose text is empty after stripping is not a heading.
   Setext headings (underline `===`/`---`) are intentionally not recognized.
-- **I25 — BOM tolerance.** A leading UTF-8 byte-order mark (`\ufeff`) on the index is stripped
+- **I25. BOM tolerance.** A leading UTF-8 byte-order mark (`\ufeff`) on the index is stripped
   before parsing so the first `## Product` header still matches.
-- **I26 — Index-need gating.** `cli.NeedsIndex(args)` reports whether an invocation requires a
+- **I26. Index-need gating.** `cli.NeedsIndex(args)` reports whether an invocation requires a
   loaded index. Only index-reading subcommands (`search`, `products`) return true; `get` and
   `outline` (FetchDoc-only), help, completion, and bare invocations return false, so they work
   offline. The allow-list is owned by the `cli` package alongside the command definitions and
@@ -254,7 +254,7 @@ annotations.
 ## Implemented packages
 
 - **`pkg/grafanadocs`** (public core): index load/parse, search (TF-IDF + word boundary),
-  product list, fetch (allowlisted, rate-limited), cleanup, outline, excerpt — plain Go
+  product list, fetch (allowlisted, rate-limited), cleanup, outline, excerpt; plain Go
   types, no MCP/CLI deps.
 - **`pkg/grafanadocs/mcp`** (MCP adapter): exposes tools on `mark3labs/mcp-go`, handles
   validation errors and empty-result guidance.
@@ -269,7 +269,7 @@ annotations.
 
 Supporting research is in the [`docs/design/research/`](docs/design/research/) folder:
 
-- [`docs-mcp-server-use-cases.md`](docs/design/research/docs-mcp-server-use-cases.md) — Recurring
+- [`docs-mcp-server-use-cases.md`](docs/design/research/docs-mcp-server-use-cases.md): Recurring
   use-case patterns for docs MCP servers (grounding, version-aware lookups, citations,
   token-efficient retrieval, product discovery, deterministic retrieval in agentic
   workflows, onboarding/troubleshooting assistants, server-side index isolation) mapped to

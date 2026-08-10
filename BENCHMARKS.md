@@ -1,7 +1,7 @@
-# BENCHMARKS — mcp-doc-server
+# BENCHMARKS: mcp-doc-server
 
 Performance and token-cost targets. **The values below are provisional placeholders**,
-not decided commitments — they exist to capture intent and will be confirmed (or replaced)
+not decided commitments; they exist to capture intent and will be confirmed (or replaced)
 as the corresponding **Open questions** in `SPECS.md` close. Once a target is ratified,
 treat it as authoritative: do not lower it (that is a regression); add new rows for new
 benchmarks.

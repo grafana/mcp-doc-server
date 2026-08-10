@@ -1,4 +1,4 @@
-# NOTES — mcp-doc-server
+# NOTES: mcp-doc-server
 
 Append-only, dated design-decision log. Never delete or edit an existing entry; if a
 decision is reversed, add an `*Addendum (YYYY-MM-DD):*` line to the original entry and
@@ -7,7 +7,7 @@ then add a new numbered entry.
 ## 1. Use `llms-full.txt` as the documentation index
 *Added: 2026-06-22*
 **Decision:** Build the searchable catalog by parsing `https://grafana.com/llms-full.txt`.
-**Rationale:** It is an official, machine-readable index — 6,879 entries across 26
+**Rationale:** It is an official, machine-readable index: 6,879 entries across 26
 product groups, format `- [Title](url.md): description` under `## <Product>` headers,
 all pointing at `latest`. No crawling or scraping needed.
 **Consequence:** Search quality is bounded by the index's titles/descriptions; the
@@ -28,7 +28,7 @@ arrive later via URL/ref transforms without reworking the core.
 **Rationale:** Matches the agent ecosystem (drops into the same clients as mcp-grafana),
 demos immediately, and the core can later be contributed into mcp-grafana or reused by gcx.
 **Consequence:** Transport is stdio in v1; an HTTP front end is a later add over the same core.
-*Addendum (2026-06-22):* The `internal/*` layout for the core is superseded by entry 10 —
+*Addendum (2026-06-22):* The `internal/*` layout for the core is superseded by entry 10:
 the core is now a public package (`pkg/grafanadocs`) so that both `grafana/mcp-grafana` and
 `grafana/gcx` can import it cross-module.
 
@@ -54,7 +54,7 @@ Returning targeted slices keeps customer token cost low.
 
 ## 7. Adopt spec-driven development
 *Added: 2026-06-22*
-**Decision:** Follow the SDD convention from mattdurham/bob — `SPECS.md`, `NOTES.md`,
+**Decision:** Follow the SDD convention from mattdurham/bob: `SPECS.md`, `NOTES.md`,
 `TESTS.md`, `BENCHMARKS.md`, and the `// NOTE:` marker on spec-driven `.go` files.
 **Rationale:** Keep contracts and decisions authoritative and cross-referenced with code.
 **Consequence:** Each `internal/*` module gets its own spec suite as it is built; specs
@@ -79,7 +79,7 @@ learned independent of any specific implementation.
 **Consequence:** Behavior-changing code edits must update `SPECS.md`/`TESTS.md` in the same
 change, or regeneration drifts. Specs stay behavior-level (pin contract + acceptance), not
 line-by-line code, so any correct implementation passes.
-*Addendum (2026-06-22):* Regeneration-grade is the **goal**, reached incrementally — not a
+*Addendum (2026-06-22):* Regeneration-grade is the **goal**, reached incrementally, not a
 license to write contracts we have not decided. `SPECS.md` is a living document: it states
 only what is decided and tracks the rest under **Open questions**, which close as we go.
 
@@ -87,7 +87,7 @@ only what is decided and tracks the rest under **Open questions**, which close a
 *Added: 2026-06-22*
 **Decision:** Ship the retrieval logic as a **public, dependency-light Go package** (the
 core) with thin, opt-in adapters: an **MCP adapter** (targets `github.com/mark3labs/mcp-go`,
-the SDK mcp-grafana uses — observed v0.46.0) and a **cobra adapter** (a `docs` command,
+the SDK mcp-grafana uses, observed v0.46.0) and a **cobra adapter** (a `docs` command,
 optionally a gcx agent skill). Our standalone `mcp-doc-server` and `grafana/mcp-grafana`
 consume the MCP adapter; `grafana/gcx` consumes the cobra adapter.
 **Rationale:** Confirmed mcp-grafana is built on mark3labs/mcp-go with `{Tool, Handler}`
@@ -102,7 +102,7 @@ same logic without one inheriting the other's dependencies.
 - Open: eventual module path/ownership (ideally `github.com/grafana/...`) and the gcx
   integration form (subcommand vs. skill vs. both). Tracked in `SPECS.md` Open questions.
 *Addendum (2026-06-23):* The version-tracking concern above is moot. Entry 11 superseded
-the "consumers import the MCP adapter" model — both `grafana/mcp-grafana` and `grafana/gcx`
+the "consumers import the MCP adapter" model: both `grafana/mcp-grafana` and `grafana/gcx`
 import the **core only** (`pkg/grafanadocs`), which has no mcp-go dependency. The adapter's
 mcp-go version (v0.55.0) is therefore free to diverge from mcp-grafana's (v0.46.0) without
 any import conflict, as confirmed by the working mcp-grafana integration (entry 19). The
@@ -122,7 +122,7 @@ adapters. The adapters serve the standalone server and generic consumers only.
   importable by external modules. The established pattern is: external core logic + a
   host-owned CLI layer that plugs it into the host's own output and annotation systems.
 **Consequence:**
-- The core's API surface is the primary compatibility contract — clean exported functions
+- The core's API surface is the primary compatibility contract: clean exported functions
   with plain Go types, no framework dependencies.
 - Our adapters can use whatever patterns are most natural (mark3labs/mcp-go directly for
   the MCP adapter, cobra for the CLI) without constraining the consumers.
@@ -138,25 +138,25 @@ adapters. The adapters serve the standalone server and generic consumers only.
 4. All-tokens multiplier (1.5× when every query token matches).
 5. Exact phrase bonus (2× when full query appears in title).
 **Rationale:** Substring matching produced false positives (e.g., "rate" matching "migrate").
-TF-IDF is the simplest effective relevance signal — no external deps, no network calls,
+TF-IDF is the simplest effective relevance signal: no external deps, no network calls,
 computed once at startup. The combined approach keeps invariants I2 (zero inference cost)
 and I7 (lean search) while dramatically improving precision.
 **Consequence:** `buildIDF` runs at index load time (O(n) over entries). The `idf` map is
 stored on the `Index` struct. Score values are now float-derived integers (×100 for
-granularity), so absolute score values changed — but ordering is what matters.
+granularity), so absolute score values changed, but ordering is what matters.
 
 ## 13. Security hardening: defense-in-depth
 *Added: 2026-06-22*
 **Decision:** Add multiple defense layers beyond the existing SSRF allowlist:
 1. Rate limiter (5 concurrent, 200ms gap) on outbound doc fetches.
 2. Body size caps (2 MiB docs, 10 MiB index) via `io.LimitReader`.
-3. HTTP client timeouts (30s docs, 60s index) — no more `http.DefaultClient`.
+3. HTTP client timeouts (30s docs, 60s index); no more `http.DefaultClient`.
 4. Redirect guard (`CheckRedirect`) blocks any redirect leaving `grafana.com`.
-5. Index entry URL validation — non-`https://grafana.com/` entries dropped at parse.
+5. Index entry URL validation: non-`https://grafana.com/` entries dropped at parse.
 6. Non-product section exclusion ("Documentation home", "Copyright notice").
 **Rationale:** OWASP Secure Product Design review identified gaps in defense-in-depth
 and zero-trust-upstream. Each fix is minimal code with no behavioral impact on normal
-operation — they only trigger under abnormal/adversarial conditions.
+operation; they only trigger under abnormal/adversarial conditions.
 **Consequence:** New invariants I9–I13 added to SPECS.md.
 
 ## 14. License: Apache 2.0
@@ -183,11 +183,11 @@ reduces wasted tool calls and improves agent workflow efficiency.
 custom-codec output model. Per entry 11, gcx is expected to write its own `cmd/gcx/docs/`
 against the core, so this adapter is a **proof-of-concept and reference**, not the import
 path gcx will take. It therefore:
-- depends only on `cobra`/`pflag` + our core — no host-internal imports (host output
+- depends only on `cobra`/`pflag` + our core; no host-internal imports (host output
   and agent-annotation packages tend to be unexported and unimportable cross-module);
 - uses a small local `output` helper (text codec + json / yaml / agents) that mirrors the
   shape of a typical host output system, so a port is mechanical;
-- accepts the `*grafanadocs.Index` from the caller — the adapter is stateless and does no
+- accepts the `*grafanadocs.Index` from the caller; the adapter is stateless and does no
   index loading, avoiding duplicate fetches;
 - documents the agent annotations (cost/hint) gcx should apply from its own registry.
 **Rationale:** Validates that the core API works cleanly with gcx conventions, and gives
@@ -204,7 +204,7 @@ cobra adapter moved from Planned to Implemented packages.
 pflag to gcx's version (v1.0.9 → v1.0.10) and confirmed cobra matches. Consumer output
 system and custom-codec interface have stable method signatures the adapter already
 matches, so a port stays mechanical. Consumer Go directive is higher than ours, which is
-fine — the consumer module sets the toolchain.
+fine; the consumer module sets the toolchain.
 **Rationale:** Keep the adapter drop-in ready without pulling in consumer-specific
 changes.
 **Consequence:** pflag bumped. No code changes to the adapter.
@@ -236,21 +236,21 @@ serialization-agnostic design explicit. No changes to mcp-doc-server code.
 ## 19. MCP integration validated: core-only import, host-owned tool wrappers
 *Added: 2026-06-23*
 **Decision:** Built a working docs integration in a downstream MCP server that imports
-only `pkg/grafanadocs` and registers four tools — `search_docs`, `get_doc`,
-`get_doc_outline`, `list_products` — using the host's own tool-registration helpers. This
+only `pkg/grafanadocs` and registers four tools (`search_docs`, `get_doc`,
+`get_doc_outline`, `list_products`) using the host's own tool-registration helpers. This
 validates entry 11's consumer integration model against a second consumer. Key findings:
 - **Core-only import; MCP adapter not used.** The host wrote its own param/result types
   with `json` + `jsonschema` struct tags wrapping the core's plain Go types. The core's
   zero-framework-dependency design meant only stdlib-shaped types crossed the boundary.
 - **mcp-go version mismatch is a non-issue.** The host uses an older mcp-go than our
   adapter. Because the consumer imports the core (no mcp-go dep) and not the adapter,
-  there is no conflict — confirming the addendum on entry 10.
+  there is no conflict, confirming the addendum on entry 10.
 - **Keep tool handlers free of package-global logging.** Some host projects lint against
   the default `slog` logger in the tool layer. Let errors propagate; leave logging to the
   host.
 - **Index lifecycle: lazy `sync.Once`.** The index loads on first
   `search_docs`/`list_products` call. `get_doc`/`get_doc_outline` only call `FetchDoc`,
-  so they never trigger the load — same split as the CLI prototype (entry 18).
+  so they never trigger the load; same split as the CLI prototype (entry 18).
   `DOCS_INDEX_URL` env var overrides the default index URL, mirroring the standalone
   server.
 - **Struct-tag-driven JSON Schema.** `jsonschema` struct tags on the consumer's param
@@ -266,7 +266,7 @@ an addendum about version independence. No changes to mcp-doc-server code.
 **Decision:** `Outline`, `excerptBySection`, and `Cleanup` now respect fenced code block
 boundaries (` ``` ` and `~~~`, per CommonMark). Content inside code blocks is never
 modified or misidentified.
-**Rationale:** Three bugs were found via the Tempo configuration page — the longest page
+**Rationale:** Three bugs were found via the Tempo configuration page: the longest page
 in Tempo's docs (~3,000 lines with dozens of YAML code blocks):
 1. `Outline` treated YAML comments (`# comment`) inside ` ```yaml ` blocks as markdown
    headings. The Tempo page produced 1,191 "headings" instead of 50 real ones.
@@ -281,7 +281,7 @@ in Tempo's docs (~3,000 lines with dozens of YAML code blocks):
 - `Cleanup`: `extractCodeBlocks`/`restoreCodeBlocks` replace code blocks with NUL-byte
   placeholders before running strip operations, then restore them. Code block content is
   byte-identical after cleanup.
-Additionally, `isFenceBoundary` was refactored to `fenceBoundaryMarker` — it now returns
+Additionally, `isFenceBoundary` was refactored to `fenceBoundaryMarker`; it now returns
 the marker type (`"``\`"` or `"~~~"`) so callers can enforce CommonMark's rule that a
 closing fence must use the same character as the opening fence. Without this, a `~~~`
 line inside a backtick-opened fence would incorrectly close it, re-exposing code block
@@ -294,7 +294,7 @@ markers, HTML comments and shortcodes inside code blocks, sample fixture regress
 **Decision:** Four additional robustness fixes discovered during systematic audit of
 markdown processing and supporting infrastructure:
 1. `collapseBlankLines` ran *after* `restoreCodeBlocks`, collapsing intentional consecutive
-   blank lines inside code blocks. Fix: reorder to run before restoration — blank line
+   blank lines inside code blocks. Fix: reorder to run before restoration; blank line
    collapsing now only affects content outside code blocks (strengthens I8/I14).
 2. `stripFrontmatter` matched `---` anywhere in the string, including mid-line in a YAML
    value (e.g. `description: Use --- for separators`). Fix: require the closing `---` to
@@ -316,7 +316,7 @@ the documented gap. `Doc.Lines` is always consistent with `Content`.
 *Added: 2026-06-23*
 **Decision:** Three bugs fixed in the MCP adapter and fetch layer:
 1. **JSON key casing (I15).** Core types (`Entry`, `Heading`, `Product`) carry no `json`
-   tags — intentionally serialization-agnostic (entry 18). The MCP adapter was marshaling
+   tags, intentionally serialization-agnostic (entry 18). The MCP adapter was marshaling
    them directly, producing PascalCase JSON keys (`"Title"`, `"Level"`, `"Name"`) instead
    of the snake_case keys documented in SPECS.md tool schemas. Fix: wrapper types
    (`searchEntry`, `outlineHeading`, `productEntry`) with explicit `json:"snake_case"` tags.
@@ -325,17 +325,17 @@ the documented gap. `Doc.Lines` is always consistent with `Content`.
 2. **URL `.md` suffix (I16).** The `.md` suffix was appended to the raw URL string. URLs
    with fragments (`#section`), query params (`?v=1`), or trailing slashes (`/`) produced
    broken fetch URLs (`...#section.md`, `...?v=1.md`, `.../.md`). Fix: `ensureMDSuffix`
-   parses the URL, strips trailing slash, appends `.md` to the path, and reconstructs —
+   parses the URL, strips trailing slash, appends `.md` to the path, and reconstructs;
    fragments and query params are preserved.
 3. **Numeric input validation (I17).** MCP handlers cast `float64` args directly to `int`
    without checking for `NaN`, `Inf`, or negative values. Fix: `safeInt` helper rejects
    non-finite and negative values with a descriptive error before they reach the core.
 **Rationale:** Bugs 1 and 2 were found by running the server against real URLs and
 inspecting the JSON output. Bug 3 was found by systematic audit of the `float64 → int`
-conversions. All three are correctness issues in the adapter layer — the core API was
+conversions. All three are correctness issues in the adapter layer; the core API was
 unaffected.
 **Consequence:** New invariants I15, I16, I17 in SPECS.md. Wrapper types added to the MCP
-adapter (but NOT to the core — the serialization-agnostic design from entry 18 is preserved).
+adapter (but NOT to the core; the serialization-agnostic design from entry 18 is preserved).
 `net/url` now used in `fetch.go` for URL manipulation.
 
 ## 23. Systematic hardening pass: search, index, cleanup, fetch
@@ -349,7 +349,7 @@ code-path audit:
 3. **`needsIndex` rewrite.** Old logic checked all args against a deny list (`"-h"`,
    `"help"`, `"completion"`), so `docs get --section help` would skip loading the index
    because `"help"` matched as a bare arg. New logic: skip flags, then check the first
-   positional arg against an allow list (`"search"`, `"products"` — the only commands
+   positional arg against an allow list (`"search"`, `"products"`, the only commands
    that read the index). `get` and `outline` only call `FetchDoc`.
 4. **Double allowlist check.** `FetchDoc` now checks the allowlist on both the original
    URL and the URL after `ensureMDSuffix` transforms it. Prevents path manipulation
@@ -361,7 +361,7 @@ code-path audit:
 6. **Exact product filter.** `Search` was using `containsFold` (substring match), so
    `product="Lo"` matched `"Grafana Loki"`. Changed to `strings.EqualFold` for exact
    case-insensitive matching (I18).
-   *Addendum (2026-06-23): replaced by the hybrid precedence resolver in NOTE 28 —
+   *Addendum (2026-06-23): replaced by the hybrid precedence resolver in NOTE 28;
    exact-only matching was too strict for agents/CLI users who pass loose terms.*
 7. **Shortcode regex.** The old regex `[^}]*[>%]\}\}` could over-match when shortcode
    arguments contained `>`. Replaced with two non-greedy alternatives:
@@ -379,7 +379,7 @@ code-path audit:
 in the four core files. All are low-risk, targeted changes with test coverage.
 **Consequence:** New invariants I18–I23 in SPECS.md. `needsIndex` rewritten with an
 allow-list approach. `collapseBlankLines` is now O(n). Product filter semantics changed
-from substring to exact match — callers must pass the full product name.
+from substring to exact match; callers must pass the full product name.
 
 ## 24. Fuzz-discovered bug: Cleanup not idempotent
 *Added: 2026-06-23*
@@ -390,9 +390,9 @@ comment can reveal a shortcode: `{<!---->{<>}}` → strip HTML comment → `{{<>
 strip shortcode → empty. A second `Cleanup` pass would strip the revealed shortcode,
 breaking idempotency (`Cleanup(Cleanup(x)) != Cleanup(x)`). The convergence loop
 ensures both strippers run until no more changes occur, guaranteeing idempotency.
-**Consequence:** I8 strengthened — `Cleanup` is now provably idempotent (tested by
+**Consequence:** I8 strengthened: `Cleanup` is now provably idempotent (tested by
 fuzz and a targeted `TestCleanup_Idempotent` with 8 representative inputs including
-the exact fuzz failure). Negligible perf impact — the loop runs at most 2 iterations
+the exact fuzz failure). Negligible perf impact; the loop runs at most 2 iterations
 for any realistic input.
 
 ## 25. Behavioral-depth fixes: ATX heading semantics and BOM tolerance
@@ -415,7 +415,7 @@ realistic failure for index files served with a BOM.
 Tests added in `outline_test.go` (`TestParseHeading_StripsTrailingHashes`,
 `TestParseHeading_IgnoresIndentedCodeBlocks`, `TestOutline_IgnoresIndentedCodeHash`)
 and `index_test.go` (`TestLoadIndex_StripsBOM`). Setext headings remain unsupported by
-design — the index/llms format uses ATX exclusively.
+design; the index/llms format uses ATX exclusively.
 
 ## 26. Behavioral-depth fixes: CRLF, variable-length fences, TOML frontmatter
 *Added: 2026-06-23*
@@ -467,7 +467,7 @@ name selects exactly one product; a loose term still resolves (`"agent"` →
 `"Grafana Agent"`); an exact hit (`"grafana"` = bare `"Grafana"`) wins over broader
 prefix/substring candidates; an unmatched filter yields zero results.
 **Rationale:** Exact-only matching (introduced to make results deterministic) was hostile to
-the primary callers — agents and CLI users routinely pass short product hints (`loki`,
+the primary callers: agents and CLI users routinely pass short product hints (`loki`,
 `agent`) rather than the full catalog name. The tiered resolver keeps determinism (same
 input → same output, no relevance dependence) while restoring friendly partial matching as
 a *fallback*, not the default. Resolution is intentionally in the core so all three surfaces
@@ -483,7 +483,7 @@ substring fallback after it re-vendors; mcp-grafana (exact names already) is una
 **Decision:** Address two Copilot review findings on PR #3.
 1. **Rate-limiter gap not enforced under concurrency.** With `maxConcurrent=5`, multiple
    goroutines could pass the semaphore, all read the same `lastCall`, compute the same wait,
-   wake together, and proceed near-simultaneously — collapsing the 200ms gap. Replaced
+   wake together, and proceed near-simultaneously, collapsing the 200ms gap. Replaced
    `lastCall` with a `nextAllowed` cursor: `acquire` reserves `slot = max(now, nextAllowed)`
    and advances `nextAllowed = slot + minGap` while holding the lock, then waits for `slot`
    outside the lock. Each concurrent acquirer now gets a distinct, spaced slot.

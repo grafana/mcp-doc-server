@@ -1,4 +1,4 @@
-# TESTS — mcp-doc-server
+# TESTS: mcp-doc-server
 
 Test scenarios for the product contract in `SPECS.md`. Each scenario is
 **Setup / Action / Assertion**. Add scenarios for new functionality; do not remove a
@@ -13,13 +13,13 @@ Principles: no network in tests, fixtures over mocks, test invariants directly.
 - **Golden files:** Markdown cleanup uses input/expected pairs in `testdata/cleanup/`.
   Regressions show as diffs.
 - **Invariant tests:** Each invariant (I1–I8) has at least one test that fails if
-  violated — not just scenarios that happen to exercise them.
+  violated, not just scenarios that happen to exercise them.
 - **Security (I3):** The allowlist is tested with an exhaustive table: valid URLs,
   SSRF attempts (metadata endpoints, private IPs, non-grafana hosts, scheme tricks),
-  path traversal. This is the primary security surface — keep it tight.
+  path traversal. This is the primary security surface; keep it tight.
 - **Bounds (I4, I7):** Slice and search tests assert token/size budgets against
   representative pages (e.g. Tempo config ~139 KB).
-- **Table-driven:** One `tests` slice, one loop — no per-case functions.
+- **Table-driven:** One `tests` slice, one loop, no per-case functions.
 - **HTTP layer:** `httptest.Server` returning fixture content for fetch tests.
 - **MCP integration:** Spawn the binary, call tools via `mcp.Client`. Runs last.
 
@@ -198,7 +198,7 @@ like `"Name"` or `"Count"` must NOT appear (I15).
 ## Scenario: URL .md suffix preserves fragments
 **Setup:** A URL `https://grafana.com/docs/tempo/latest/configuration#auth`.
 **Action:** `ensureMDSuffix(url)`.
-**Assertion:** Returns `https://grafana.com/docs/tempo/latest/configuration.md#auth` —
+**Assertion:** Returns `https://grafana.com/docs/tempo/latest/configuration.md#auth`;
 the `.md` suffix is on the path, the fragment is preserved (I16).
 
 ## Scenario: URL .md suffix preserves query parameters
@@ -209,7 +209,7 @@ the `.md` suffix is on the path, the fragment is preserved (I16).
 ## Scenario: URL .md suffix handles trailing slash
 **Setup:** A URL `https://grafana.com/docs/tempo/latest/`.
 **Action:** `ensureMDSuffix(url)`.
-**Assertion:** Returns `https://grafana.com/docs/tempo/latest.md` — trailing slash is
+**Assertion:** Returns `https://grafana.com/docs/tempo/latest.md`; trailing slash is
 stripped before appending `.md` (I16).
 
 ## Scenario: MCP rejects negative limit
@@ -265,7 +265,7 @@ or file read occurs (I19).
 **Setup:** A document with a `\`\`\`yaml` fence that never closes (simulating truncation).
 **Action:** `Cleanup(doc)`.
 **Assertion:** The unclosed fence and its content appear in the output in their original
-position — not re-ordered to the end of the document (I23).
+position, not re-ordered to the end of the document (I23).
 
 ## Scenario: Shortcode regex handles > in arguments
 **Setup:** A document with `{{< highlight go "linenos=true" >}}...{{< /highlight >}}`.
@@ -286,27 +286,27 @@ unclosed fences, multiple blank lines.
 **Action:** `Cleanup(Cleanup(input))`.
 **Assertion:** `Cleanup(Cleanup(x)) == Cleanup(x)` for all inputs (I8).
 
-## Scenario: Fuzz — Cleanup does not panic
+## Scenario: Fuzz Cleanup does not panic
 **Setup:** Go fuzz corpus with seed inputs.
 **Action:** `FuzzCleanup` with random bytes.
 **Assertion:** No panics. Result ends with `\n`. Idempotent.
 
-## Scenario: Fuzz — parseHeading bounds
+## Scenario: Fuzz parseHeading bounds
 **Setup:** Go fuzz corpus with heading-like strings.
 **Action:** `FuzzParseHeading` with random strings.
 **Assertion:** Level is always 0-6. Level 0 has empty text.
 
-## Scenario: Fuzz — fenceBoundaryMarker returns valid values
+## Scenario: Fuzz fenceBoundaryMarker returns valid values
 **Setup:** Go fuzz corpus.
 **Action:** `FuzzFenceBoundaryMarker` with random strings.
 **Assertion:** Result is always one of `""`, `` "```" ``, `"~~~"`.
 
-## Scenario: Fuzz — ensureMDSuffix does not panic
+## Scenario: Fuzz ensureMDSuffix does not panic
 **Setup:** Go fuzz corpus with URL-like strings.
 **Action:** `FuzzEnsureMDSuffix` with random strings.
 **Assertion:** No panics. For hierarchical URLs, result contains `.md`.
 
-## Scenario: Fuzz — LoadIndexFromReader does not panic
+## Scenario: Fuzz LoadIndexFromReader does not panic
 **Setup:** Go fuzz corpus with index-like text.
 **Action:** `FuzzLoadIndexFromReader` with random bytes.
 **Assertion:** No panics. All parsed entries have non-empty Title, URL, Product, and
