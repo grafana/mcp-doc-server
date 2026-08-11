@@ -31,10 +31,9 @@ Run `go env GOPATH` to find the binary path.
 
 ## Documentation
 
-- [Full documentation](https://grafana.com/docs/mcp-doc-server/latest/) — install, configure, tools reference, and library integration.
-- [Architecture and design notes](docs/design/) — how the core and adapters fit together, prior art, and cost analysis.
-- [Contributing](CONTRIBUTING.md) — spec-driven development workflow.
-- [Security](SECURITY.md) — vulnerability reporting.
+- [Architecture and design notes](docs/design/): how the core and adapters fit together, prior art, and cost analysis.
+- [Contributing](CONTRIBUTING.md): spec-driven development workflow.
+- [Security](SECURITY.md): vulnerability reporting.
 
 ## License
 

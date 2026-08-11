@@ -6,7 +6,7 @@ This file is used as a pointer file for AI and agents, especiallly used for docu
 
 - **Product name (short):** mcp-doc-server
 - **Product name (first mention in prose):** mcp-doc-server
-- **GitHub org/repo:** knylander-grafana/mcp-doc-server
+- **GitHub org/repo:** grafana/mcp-doc-server
 
 ## Branches and releases
 
