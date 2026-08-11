@@ -39,7 +39,7 @@ annotate instead). See `AGENTS.md` for the SDD convention and `NOTES.md` for dec
   must NOT live under `internal/` (Go forbids cross-module `internal` imports) and must
   not depend on the MCP SDK or cobra.
 - **Opt-in adapters wrap the core** for our standalone server:
-  - an **MCP adapter** (`pkg/grafanadocs/mcp`) on `github.com/mark3labs/mcp-go` v0.55.0;
+  - an **MCP adapter** (`pkg/grafanadocs/mcp`) on `github.com/mark3labs/mcp-go` v0.57.0;
   - a **cobra adapter** (`pkg/grafanadocs/cli`) for standalone CLI use.
 - **Consumer integration model (`NOTES.md` 11):** `grafana/mcp-grafana` and `grafana/gcx`
   import the **core only** and write their own idiomatic wrappers — mcp-grafana writes a
@@ -101,7 +101,7 @@ own tags. This keeps the core free of framework opinions.
 
 ### Config & runtime
 - **Go version:** 1.26.5 (matches `go.mod`).
-- **`mcp-go` version:** v0.55.0 (standalone server uses latest; core has no mcp-go dep).
+- **`mcp-go` version:** v0.57.0 (standalone server uses latest; core has no mcp-go dep).
 - **Module path:** `github.com/grafana/mcp-doc-server`.
 - **Transport:** stdio in v1.
 - **License:** Apache 2.0 (matches mcp-grafana and gcx).
