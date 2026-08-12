@@ -1,15 +1,15 @@
 ---
 title: Tools and CLI reference
 menuTitle: Tools
-description: Reference for the four mcp-doc-server tools (search_docs, get_doc_outline, get_doc, and list_products) with parameters, output examples, and CLI usage.
-weight: 4
+description: Reference for the four Grafana Docs MCP Server tools (search_docs, get_doc_outline, get_doc, and list_products) with parameters, output examples, and CLI usage.
+weight: 6
 topicType: reference
 versionDate: 2026-06-25
 ---
 
 # Tools and CLI reference
 
-mcp-doc-server exposes four tools, available both as Model Context Protocol (MCP) tools and as `docs` CLI commands. They share the same data shapes, so JSON output is identical across both surfaces.
+Grafana Docs MCP Server exposes four tools, available both as Model Context Protocol (MCP) tools and as `docs` CLI commands. They share the same data shapes, so JSON output is identical across both surfaces.
 
 | Tool | CLI command | Purpose |
 |------|-------------|---------|
@@ -18,11 +18,14 @@ mcp-doc-server exposes four tools, available both as Model Context Protocol (MCP
 | `get_doc` | `docs get` | Fetch cleaned Markdown, by section or line range |
 | `list_products` | `docs products` | List product documentation groups |
 
+To call these from Go instead of through MCP or the CLI, each tool maps to a core library function: `search_docs` to `Search`, `get_doc_outline` to `Outline`, `get_doc` to `FetchDoc` with `Excerpt`, and `list_products` to `Products`. 
+Refer to [Integrate the core library](../integrate/).
+
 ## Workflow
 
 Agents narrow in progressively: search, outline, then fetch only the section they need.
 
-![Sequence diagram showing the full tool workflow: the agent searches for pages, requests a page outline, and fetches one section while the server retrieves documentation on demand](tools-workflow.svg)
+![Sequence diagram showing the full tool workflow: the agent searches for pages, requests a page outline, and fetches one section while the server retrieves documentation on demand](../tools-workflow.svg)
 
 ### Worked example
 
@@ -35,15 +38,15 @@ Agents narrow in progressively: search, outline, then fetch only the section the
 ```json
 [
   {
-    "title": "Span metrics",
-    "url": "https://grafana.com/docs/tempo/latest/metrics-generator/span-metrics/",
-    "description": "Generate metrics from spans.",
+    "title": "Metrics-generator",
+    "url": "https://grafana.com/docs/tempo/latest/metrics-from-traces/metrics-generator/",
+    "description": "Generate metrics from incoming traces.",
     "product": "Grafana Tempo"
   },
   {
     "title": "Metrics-generator",
-    "url": "https://grafana.com/docs/tempo/latest/metrics-generator/",
-    "description": "Configure the metrics generator.",
+    "url": "https://grafana.com/docs/tempo/latest/reference-tempo-architecture/components/metrics-generator/",
+    "description": "The metrics-generator component.",
     "product": "Grafana Tempo"
   }
 ]
@@ -52,16 +55,16 @@ Agents narrow in progressively: search, outline, then fetch only the section the
 **2. Outline** the top result:
 
 ```json
-{"url": "https://grafana.com/docs/tempo/latest/metrics-generator/span-metrics/"}
+{"url": "https://grafana.com/docs/tempo/latest/metrics-from-traces/metrics-generator/"}
 ```
 
 ```json
 {
-  "url": "https://grafana.com/docs/tempo/latest/metrics-generator/span-metrics/",
+  "url": "https://grafana.com/docs/tempo/latest/metrics-from-traces/metrics-generator/",
   "headings": [
-    {"level": 1, "text": "Span metrics", "line": 1},
-    {"level": 2, "text": "Configuration", "line": 15},
-    {"level": 2, "text": "Example", "line": 56}
+    {"level": 1, "text": "Metrics-generator", "line": 3},
+    {"level": 2, "text": "Architecture", "line": 7},
+    {"level": 2, "text": "Native histograms", "line": 53}
   ]
 }
 ```
@@ -70,17 +73,17 @@ Agents narrow in progressively: search, outline, then fetch only the section the
 
 ```json
 {
-  "url": "https://grafana.com/docs/tempo/latest/metrics-generator/span-metrics/",
-  "section": "Configuration"
+  "url": "https://grafana.com/docs/tempo/latest/metrics-from-traces/metrics-generator/",
+  "section": "Native histograms"
 }
 ```
 
 ```json
 {
-  "content": "## Configuration\n\nConfigure the span metrics processor...",
-  "url": "https://grafana.com/docs/tempo/latest/metrics-generator/span-metrics/",
-  "total_lines": 72,
-  "returned_range": [15, 55]
+  "content": "## Native histograms\n\nNative histograms are a data type in Prometheus...",
+  "url": "https://grafana.com/docs/tempo/latest/metrics-from-traces/metrics-generator/",
+  "total_lines": 91,
+  "returned_range": [53, 60]
 }
 ```
 
@@ -105,9 +108,9 @@ A JSON array of entries, each with `title`, `url`, `description`, and `product` 
 ```json
 [
   {
-    "title": "Configure alerting",
-    "url": "https://grafana.com/docs/grafana/latest/alerting/configure-alerting/",
-    "description": "Configure your alerting environment and notification policies.",
+    "title": "Grafana Alerting",
+    "url": "https://grafana.com/docs/grafana/latest/alerting/",
+    "description": "Learn about the Grafana Alerting system and how it works.",
     "product": "Grafana"
   }
 ]
@@ -163,11 +166,11 @@ A JSON object with the page `url` and an array of `headings`:
 
 ```json
 {
-  "url": "https://grafana.com/docs/loki/latest/configure/",
+  "url": "https://grafana.com/docs/grafana/latest/alerting/",
   "headings": [
-    {"level": 1, "text": "Configure Loki", "line": 1},
-    {"level": 2, "text": "Limits", "line": 42},
-    {"level": 3, "text": "Per-tenant limits", "line": 58}
+    {"level": 1, "text": "Grafana Alerting", "line": 3},
+    {"level": 2, "text": "Overview", "line": 9},
+    {"level": 2, "text": "Explore", "line": 17}
   ]
 }
 ```
@@ -195,7 +198,7 @@ Fetch a page as cleaned Markdown. Supports section extraction and offset/limit p
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `url` | string | Yes | None | The `grafana.com/docs/` URL to fetch. |
+| `url` | string | Yes | None | The `grafana.com/docs/` URL to fetch. Accepts the URL with or without a trailing `.md`, so you can paste a `search_docs` result directly. |
 | `section` | string | No | None | Heading text to extract. Returns only that section. |
 | `offset` | integer | No | 0 | Line offset for paging (0-indexed). Used when `section` isn't set. |
 | `limit` | integer | No | 80 | Maximum lines to return. Used when `section` isn't set. |
@@ -204,10 +207,10 @@ Fetch a page as cleaned Markdown. Supports section extraction and offset/limit p
 
 ```json
 {
-  "content": "# Configure alerting\n\nConfigure your alerting...",
-  "url": "https://grafana.com/docs/grafana/latest/alerting/configure-alerting/",
-  "total_lines": 245,
-  "returned_range": [1, 80]
+  "content": "# Grafana Alerting\n\nMonitor your incoming metrics data or log entries...",
+  "url": "https://grafana.com/docs/grafana/latest/alerting/",
+  "total_lines": 42,
+  "returned_range": [1, 42]
 }
 ```
 
@@ -237,7 +240,7 @@ section "Retention" not found. Use get_doc_outline to see available headings.
 
 ```json
 {"url": "https://grafana.com/docs/loki/latest/configure/", "limit": 50}
-{"url": "https://grafana.com/docs/grafana/latest/alerting/configure-alerting/", "section": "Notification policies"}
+{"url": "https://grafana.com/docs/grafana/latest/alerting/", "section": "Overview"}
 {"url": "https://grafana.com/docs/mimir/latest/configure/configuration-parameters/", "offset": 100, "limit": 50}
 ```
 
@@ -319,8 +322,8 @@ docs get <url> [flags]
 | `-o`, `--output` | `text` | Output format |
 
 ```bash
-docs get https://grafana.com/docs/grafana/latest/alerting/configure-alerting/
-docs get https://grafana.com/docs/loki/latest/configure/ --section "Limits"
+docs get https://grafana.com/docs/loki/latest/configure/
+docs get https://grafana.com/docs/grafana/latest/alerting/ --section "Overview"
 docs get https://grafana.com/docs/mimir/latest/configure/configuration-parameters/ --offset 100 --limit 50
 ```
 
@@ -337,7 +340,7 @@ docs outline <url> [flags]
 | `-o`, `--output` | `text` | Output format |
 
 ```bash
-docs outline https://grafana.com/docs/grafana/latest/alerting/configure-alerting/
+docs outline https://grafana.com/docs/grafana/latest/alerting/
 docs outline https://grafana.com/docs/loki/latest/configure/ -o json
 ```
 
@@ -381,6 +384,6 @@ docs search "alerting" -o agents | jq -r '.[].url'
 
 ## Related resources
 
-- [Install and configure](../install/): build the binaries and connect a client
-- [Configuration](../configure/): environment variables and limits
+- [Install and connect](../install/): build the binaries and connect a client
+- [Configure the server](../configure/): environment variables and limits
 - [Integrate the core library](../integrate/): the Go API behind these tools

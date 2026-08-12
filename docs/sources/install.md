@@ -1,15 +1,15 @@
 ---
-title: Install and configure
-menuTitle: Install and configure
-description: Build mcp-doc-server from source and connect it to Cursor, Claude Desktop, Claude Code, or any MCP client that supports stdio transport.
-weight: 3
+title: Install and connect
+menuTitle: Install and connect
+description: Build Grafana Docs MCP Server from source and connect it to Cursor, Claude Desktop, Claude Code, or any MCP client that supports stdio transport.
+weight: 5
 topicType: task
 versionDate: 2026-06-25
 ---
 
-# Install and configure
+# Install and connect
 
-Build mcp-doc-server and connect it to your Model Context Protocol (MCP) client. The server works exclusively with Grafana Labs docs served from `grafana.com/docs/`.
+Build Grafana Docs MCP Server and connect it to your [Model Context Protocol (MCP)](https://modelcontextprotocol.io) client. The server works exclusively with Grafana Labs docs served from `grafana.com/docs/`.
 
 ## Before you begin
 
@@ -35,7 +35,7 @@ The binaries are installed to `$(go env GOPATH)/bin/`. Make sure that directory 
 Alternatively, clone the repository and build both the MCP server and the standalone CLI:
 
 ```bash
-git clone git@github.com:grafana/mcp-doc-server.git
+git clone https://github.com/grafana/mcp-doc-server.git
 cd mcp-doc-server
 go build -o bin/mcp-doc-server ./cmd/mcp-doc-server/
 go build -o bin/docs ./cmd/docs/
@@ -56,13 +56,13 @@ mcp-doc-server 0.1.0: loading index from https://grafana.com/llms-full.txt
 index loaded: 6645 entries, 24 products
 ```
 
-There's no prompt after that. The server is ready and waiting for your MCP client to connect. The index is approximately 2 MB and typically loads in 1–3 seconds.
+There's no prompt after that. The server is ready and waiting for your MCP client to connect. The index is approximately 2 MB and typically loads in 1 to 3 seconds.
 
 The server supports stdio transport only. It communicates over stdin/stdout using the MCP JSON-RPC protocol. HTTP and SSE transports are not supported.
 
 ## Connect your client
 
-Add mcp-doc-server to your client's MCP configuration. The JSON structure is the same for every client. Only the file location differs:
+Add Grafana Docs MCP Server to your client's MCP configuration. The JSON structure is the same for every client. Only the file location differs:
 
 ```json
 {
@@ -116,24 +116,32 @@ To load a different index, set `DOCS_INDEX_URL` (HTTPS only) via the `env` field
 
 ## Verify
 
-Confirm the CLI works:
+To confirm the CLI works:
 
 ```bash
 ./bin/docs search "alerting rules" --limit 3
 ```
 
-You should see a table of matching pages:
-
-```
-TITLE                      PRODUCT  URL
-Configure alerting         Grafana  https://grafana.com/docs/grafana/latest/alerting/
-Alerting rules             Grafana  https://grafana.com/docs/grafana/latest/alerting/alerting-rules/
-...
-```
+You should see a ranked table of matching pages. For an example of that output, refer to [Get started](../get-started/#search-for-a-page).
 
 Then confirm the client connection by asking your agent a question that needs a docs lookup, for example, "How does Loki retention work?" The agent should call `search_docs`, then `get_doc_outline` and `get_doc`, and cite a `grafana.com` URL.
 
 For details on all tool parameters and output formats, refer to [Tools and CLI reference](../tools/).
+
+## Update
+
+To move to a newer version, repeat the install method you used:
+
+- If you used `go install`, re-run the install commands with `@latest`.
+- If you built from source, pull the latest changes and rebuild:
+
+```bash
+git pull
+go build -o bin/mcp-doc-server ./cmd/mcp-doc-server/
+go build -o bin/docs ./cmd/docs/
+```
+
+Restart the server so your MCP client loads the new binary. The running version appears in the first startup log line.
 
 ## Troubleshooting
 
@@ -150,4 +158,4 @@ For details on all tool parameters and output formats, refer to [Tools and CLI r
 ## Next steps
 
 - [Tools reference](../tools/): tool parameters, CLI commands, and a full workflow example
-- [Configuration](../configure/): environment variables and built-in limits
+- [Configure the server](../configure/): environment variables and built-in limits

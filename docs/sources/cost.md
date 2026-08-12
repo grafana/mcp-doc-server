@@ -1,15 +1,15 @@
 ---
 title: Cost
 menuTitle: Cost
-description: How mcp-doc-server costs break down. The server adds no inference cost, so you pay only for the agent's tokens for retrieved documentation.
-weight: 7
+description: How Grafana Docs MCP Server costs break down. The server adds no inference cost, so you pay only for the agent's tokens for retrieved documentation.
+weight: 3
 topicType: reference
 versionDate: 2026-06-26
 ---
 
 # Cost
 
-mcp-doc-server has two cost layers: the server runtime and the agent's large language model (LLM) tokens. The server adds no inference cost of its own. It runs no LLM and performs no embedding calls, so the agent's token usage for retrieved documentation is the only metered cost.
+Grafana Docs MCP Server has two cost layers: the server runtime and the agent's large language model (LLM) tokens. The server adds no inference cost of its own. It runs no LLM and performs no embedding calls, so the agent's token usage for retrieved documentation is the only metered cost.
 
 ## Token cost
 
@@ -32,6 +32,6 @@ These figures cover documentation retrieval only, not the agent's total token us
 
 ## Related resources
 
-- For a full cost breakdown (server footprint, comparison with other retrieval approaches, scale projections, and methodology), refer to `docs/design/research/cost-analysis.md` in the repository.
+- For a full cost breakdown (server footprint, comparison with other retrieval approaches, scale projections, and methodology), refer to the cost-analysis document in the [project repository](https://github.com/grafana/mcp-doc-server/blob/main/docs/design/research/cost-analysis.md). This is a repository reference, not a published documentation page.
 - [Tools and CLI reference](../tools/): the search, outline, and fetch workflow
-- [Configuration](../configure/): built-in limits, including outbound rate limiting
+- [Configure the server](../configure/): built-in limits, including outbound rate limiting

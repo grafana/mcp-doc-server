@@ -2,20 +2,20 @@
 title: Integrate the core library
 menuTitle: Integrate
 description: Import the pkg/grafanadocs core library into a Go project to add Grafana documentation search and retrieval without MCP or CLI dependencies.
-weight: 6
+weight: 8
 topicType: task
 versionDate: 2026-06-25
 ---
 
 # Integrate the core library
 
-This page is for Go developers embedding the core library in their own projects. To run the server as-is, refer to [Install and configure](../install/).
+This page is for Go developers embedding the core library in their own projects. To run the server as-is, refer to [Install and connect](../install/).
 
 Import `pkg/grafanadocs` into your Go project to add Grafana documentation retrieval without depending on Model Context Protocol (MCP) or CLI frameworks. The core is dependency-light, just the Go standard library.
 
 ## Architecture
 
-The core package (`pkg/grafanadocs`) has no dependencies on MCP or CLI frameworks. The MCP server and CLI adapters live in subpackages (`pkg/grafanadocs/mcp` and `pkg/grafanadocs/cli`) that import the core and wire it to `mcp-go` and Cobra respectively.
+The core package (`pkg/grafanadocs`) has no dependencies on MCP or CLI frameworks. The MCP server and CLI adapters live in the `pkg/grafanadocs/mcp` and `pkg/grafanadocs/cli` packages, which import the core and wire it to `mcp-go` and Cobra respectively.
 
 Two other projects import the core library directly:
 
@@ -24,7 +24,7 @@ Two other projects import the core library directly:
 
 Both consumers import `pkg/grafanadocs` directly and write their own idiomatic wrappers; they don't import the MCP or CLI adapters.
 
-For the timeout, rate-limit, and body-size values these packages enforce, refer to [Configuration](../configure/).
+For the timeout, rate-limit, and body-size values these packages enforce, refer to [Configure the server](../configure/).
 
 ## Before you begin
 
@@ -37,6 +37,45 @@ You need:
 
 ```bash
 go get github.com/grafana/mcp-doc-server/pkg/grafanadocs
+```
+
+## Complete example
+
+This program loads the index, runs one search, fetches the top result, and prints its opening lines. The sections that follow explain each call in detail.
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/grafana/mcp-doc-server/pkg/grafanadocs"
+)
+
+func main() {
+	ctx := context.Background()
+
+	idx, err := grafanadocs.LoadIndex(ctx, grafanadocs.DefaultIndexURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	results := grafanadocs.Search(idx, "alerting rules", grafanadocs.SearchOpts{Limit: 1})
+	if len(results) == 0 {
+		log.Fatal("no matching pages")
+	}
+
+	doc, err := grafanadocs.FetchDoc(ctx, results[0].URL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	excerpt := grafanadocs.Excerpt(doc, grafanadocs.ExcerptOpts{Limit: 20})
+	fmt.Printf("%s (lines %d-%d of %d)\n\n", results[0].URL, excerpt.Start, excerpt.End, excerpt.Total)
+	fmt.Println(excerpt.Content)
+}
 ```
 
 ## Load the index
@@ -84,7 +123,7 @@ if err != nil {
 }
 ```
 
-`FetchDoc` returns cleaned Markdown. It enforces the URL allowlist (only `grafana.com/docs/`) and rate limiting automatically.
+`FetchDoc` returns cleaned Markdown. It enforces the URL allowlist (only `grafana.com/docs/`) and rate limiting automatically. The URL works with or without a trailing `.md`, so a `Search` result URL can be passed straight through.
 
 ## Get the heading outline
 
@@ -177,5 +216,5 @@ Commands that only call `FetchDoc` (like `get` and `outline`) never need the ind
 
 ## Related resources
 
-- [Configuration](../configure/): the timeout and rate limit values these functions enforce
+- [Configure the server](../configure/): the timeout and rate limit values these functions enforce
 - [Tools and CLI reference](../tools/): the input/output contracts exposed by the adapters
