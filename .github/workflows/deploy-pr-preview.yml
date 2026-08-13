@@ -28,7 +28,7 @@ jobs:
       sources: |
         [
           {
-            "index_file": null,
+            "index_file": "content/docs/mcp-doc-server/_index.md",
             "relative_prefix": "/docs/mcp-doc-server/next/",
             "repo": "mcp-doc-server",
             "source_directory": "docs/sources",
