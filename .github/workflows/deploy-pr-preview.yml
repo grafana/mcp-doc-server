@@ -29,6 +29,14 @@ jobs:
         [
           {
             "index_file": null,
+            "relative_prefix": "/docs/",
+            "repo": "website",
+            "source_directory": "content/docs",
+            "website_directory": "content/docs",
+            "ref": "main"
+          },
+          {
+            "index_file": null,
             "relative_prefix": "/docs/mcp-doc-server/next/",
             "repo": "mcp-doc-server",
             "source_directory": "docs/sources",
