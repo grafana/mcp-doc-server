@@ -11,6 +11,10 @@ versionDate: 2026-06-25
 
 Run the CLI to search, outline, and fetch Grafana documentation before you install the server or connect an MCP client.
 
+{{< admonition type="note" >}}
+Grafana Docs MCP Server only retrieves the current documentation. Future plans include being able to retrieve previous versions. 
+{{< /admonition >}}
+
 ## Before you begin
 
 You need:

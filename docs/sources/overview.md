@@ -13,6 +13,10 @@ Grafana Docs MCP Server is a [Model Context Protocol (MCP)](https://modelcontext
 
 Agents search, browse, and retrieve current documentation from `grafana.com/docs/` during a conversation instead of relying on potentially stale training data.
 
+{{< admonition type="note" >}}
+Grafana Docs MCP Server only retrieves the current published documentation. Future plans include being able to retrieve specific versions. 
+{{< /admonition >}}
+
 ## When to use it
 
 Use Grafana Docs MCP Server to give an AI agent or LLM direct access to official Grafana documentation during a conversation, so it reads the actual content instead of guessing.

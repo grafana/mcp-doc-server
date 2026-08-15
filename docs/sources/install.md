@@ -9,7 +9,8 @@ versionDate: 2026-06-25
 
 # Install and connect
 
-Build Grafana Docs MCP Server and connect it to your [Model Context Protocol (MCP)](https://modelcontextprotocol.io) client. The server works exclusively with Grafana Labs docs served from `grafana.com/docs/`.
+Build Grafana Docs MCP Server and connect it to your [Model Context Protocol (MCP)](https://modelcontextprotocol.io) client. The server works exclusively with Grafana Labs documentation served from `grafana.com/docs/`.
+At this time, only the most recent versions of published documentation can be retrieved by the Docs MCP Server. 
 
 ## Before you begin
 
