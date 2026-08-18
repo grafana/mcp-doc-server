@@ -1,15 +1,15 @@
 ---
-title: Configuration
+title: Configure the server
 menuTitle: Configure
-description: Environment variables, built-in limits, and the URL allowlist that control mcp-doc-server behavior.
-weight: 5
+description: Environment variables, built-in limits, and the URL allowlist that control Grafana Docs MCP Server behavior.
+weight: 7
 topicType: reference
 versionDate: 2026-06-25
 ---
 
-# Configuration
+# Configure the server
 
-mcp-doc-server has one configurable setting; everything else is a built-in limit compiled into the binary.
+Grafana Docs MCP Server has one configurable setting; everything else is a built-in limit compiled into the binary.
 
 ## Configurable settings
 
@@ -30,7 +30,7 @@ Set it as an environment variable:
 DOCS_INDEX_URL=https://example.com/custom-index.txt ./bin/mcp-doc-server
 ```
 
-Or, for a Model Context Protocol (MCP) client, pass it through the `env` field of your server configuration. Refer to [Install and configure](../install/).
+Or, for a Model Context Protocol (MCP) client, pass it through the `env` field of your server configuration. Refer to [Install and connect](../install/).
 
 ## Built-in limits
 
@@ -77,7 +77,9 @@ The index parser uses a 1 MiB line buffer (versus Go's 64 KiB default) so long i
 
 The check runs twice, on the original URL and again after the `.md` suffix is added, to prevent path manipulation. Redirects to any non-`grafana.com` host are blocked.
 
+For the runtime symptoms these limits and allowlist rejections produce, such as startup index errors, truncated responses, or blocked fetches, refer to the [Install and connect](../install/) troubleshooting table.
+
 ## Related resources
 
-- [Install and configure](../install/): passing `DOCS_INDEX_URL` through client configuration, plus troubleshooting startup and index errors
+- [Install and connect](../install/): passing `DOCS_INDEX_URL` through client configuration, plus troubleshooting startup and index errors
 - [Integrate the core library](../integrate/): how these limits apply when you import the core
