@@ -42,3 +42,4 @@ Every `.go` file in a spec-driven module starts with:
 4. **New significant decision ⇒ new `NOTES.md` entry.**
 5. **Audit = read-only.** Verifying code-vs-spec drift reports issues; it does not invent
    new functionality.
+- Security issues should be reported via [Grafana's security issue reporting page](https://grafana.com/legal/report-a-security-issue/) and not directly in this repository.
