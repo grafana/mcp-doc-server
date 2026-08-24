@@ -68,7 +68,7 @@ Paths the agent should check when validating documentation claims against code.
 
 - [`AGENTS.md`](../AGENTS.md) — SDD conventions and working rules for the repo root module.
 - [`SPECS.md`](../SPECS.md) — complete behavioral contract (invariants I1–I26, tool schemas, core API, search ranking, cleanup rules).
-- [`NOTES.md`](../NOTES.md) — append-only decision log (29 entries as of initial creation).
+- [`NOTES.md`](../NOTES.md) — append-only decision log (30 entries).
 - [`TESTS.md`](../TESTS.md) — test scenarios mapped to invariants.
 - [`BENCHMARKS.md`](../BENCHMARKS.md) — performance and token-cost targets.
 

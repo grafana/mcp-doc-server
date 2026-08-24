@@ -46,20 +46,27 @@ var SearchDocsTool = mcpgrafana.MustTool(
     "Search Grafana documentation.",
     searchDocs,
     mcp.WithReadOnlyHintAnnotation(true),
+    mcp.WithDestructiveHintAnnotation(false),
+    mcp.WithOpenWorldHintAnnotation(true),
 )
 ```
 
 ## Index lifecycle
 
-The index is loaded lazily on first use via `sync.Once`:
+The index is loaded lazily on first **successful** `search_docs` or `list_products`
+call. Failures are not cached: a cancelled or timed-out first request must not
+poison later ones. The fetch is detached from the caller's cancellation
+(`context.WithoutCancel`) so one cancelled tool call cannot abort an in-flight
+load. A one-shot `sync.Once` is deliberately not used — it would store the first
+error forever.
 
 - `search_docs` → triggers index load
 - `list_products` → triggers index load
 - `get_doc` → only calls `FetchDoc` (no index needed)
 - `get_doc_outline` → only calls `FetchDoc` (no index needed)
 
-This means the mcp-grafana server starts fast — it doesn't block on index
-loading at startup. The index fetches on first search/products call.
+The mcp-grafana server starts fast — it does not block on index loading at
+startup. The index fetches on first search/products call.
 
 ## What users see
 
@@ -117,7 +124,7 @@ type-safe params, and error wrapping consistently across all 30+ tool categories
 Importing the raw adapter would introduce a second registration style.
 
 Instead, mcp-grafana imports only `pkg/grafanadocs` (the core) and writes
-~245 lines of tool wrappers that follow its own conventions perfectly.
+thin `MustTool` wrappers that follow its own conventions.
 
 ## Code location
 

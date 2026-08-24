@@ -234,6 +234,10 @@ own tags. This keeps the core free of framework opinions.
   `FetchDoc`, so they never trigger the load. `DOCS_INDEX_URL` env var override mirrors
   the standalone server. Tool handlers should not use the default `slog` logger; let
   errors propagate and leave logging to the host.
+  *Addendum (2026-08-24, `NOTES.md` 30):* lazy load is still on first
+  `search_docs`/`list_products`, but the host caches only a successful load.
+  `sync.Once` would retain the first error (including a cancelled request) for
+  the process lifetime.
 
 ### CLI adapter surface (`pkg/grafanadocs/cli`)
 A mountable cobra `docs` command group, exported as `Command(idx *grafanadocs.Index)

@@ -28,9 +28,9 @@ Initial release of mcp-doc-server.
 
 - **CLI** (`cmd/docs`): standalone command-line interface with the same four operations (`search`, `get`, `outline`, `products`). Supports text, JSON, YAML, and agents output formats.
 
-- **MCP adapter** (`pkg/grafanadocs/mcp`): registers documentation tools on a `mark3labs/mcp-go` server. Used by mcp-grafana.
+- **MCP adapter** (`pkg/grafanadocs/mcp`): registers documentation tools on a `mark3labs/mcp-go` server. Used by the standalone `cmd/mcp-doc-server`. mcp-grafana imports the core (`pkg/grafanadocs`) and writes its own `MustTool` wrappers; it does not import this adapter.
 
-- **CLI adapter** (`pkg/grafanadocs/cli`): mountable Cobra command group. Used by gcx (`gcx docs`).
+- **CLI adapter** (`pkg/grafanadocs/cli`): mountable Cobra command group. Used by the standalone `cmd/docs`. gcx writes its own `gcx docs` command layer against the core; it does not import this adapter.
 
 - **Documentation**: full docs suite covering get-started, install, tools reference, configuration, and library integration.
 

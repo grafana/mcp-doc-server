@@ -260,6 +260,11 @@ and that consumers can adopt their own framework conventions without the core im
 any.
 **Consequence:** SPECS.md gains an "MCP integration form" closed question; entry 10 gets
 an addendum about version independence. No changes to mcp-doc-server code.
+*Addendum (2026-08-24):* mcp-grafana no longer uses `sync.Once` for the index.
+A one-shot Once caches the first failure (cancelled or timed-out fetch) forever.
+The host now caches only a successful load and detaches the fetch from the
+caller context. The lazy split (search/products load; get/outline do not) is
+unchanged. See entry 30.
 
 ## 20. Code-fence-aware processing (headings, cleanup)
 *Added: 2026-06-23*
@@ -497,3 +502,15 @@ the safeInt fix closes a validation bypass in the MCP input sanitizer (I17).
 **Consequence:** I9 and I17 reworded. `TestRateLimiter_ConcurrentStress` strengthened to
 assert total elapsed ≥ (N−1)·gap (true spacing, not just no-deadlock). `TestSafeInt` extended
 with NaN/Inf/overflow/cap cases. No public API change; both consumers unaffected.
+
+## 30. MCP consumer index cache: success-only, not sync.Once
+*Added: 2026-08-24*
+**Decision:** The mcp-grafana consumer caches the docs index only after a successful
+`LoadIndex`. Failures are retried on the next `search_docs`/`list_products` call.
+The fetch uses `context.WithoutCancel` so a cancelled first tool call cannot
+poison later ones. A one-shot `sync.Once` is not used.
+**Rationale:** `sync.Once` (NOTES 19) stores the first error forever, including
+context cancellation. mcp-grafana already uses success-only caching for similar
+one-shot fetches. The lazy split (index on search/products only) is unchanged.
+**Consequence:** SPECS.md MCP consumer closed question annotated. Demo walkthrough
+in `docs/design/demo/mcp-grafana-integration.md` updated. Core API unchanged.
