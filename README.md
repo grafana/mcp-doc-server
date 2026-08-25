@@ -29,6 +29,12 @@ Connect it to your MCP client:
 
 Run `go env GOPATH` to find the binary path.
 
+## Future plans 
+
+We are working on integrations with GCX and Grafana MCP server directly. Those PRs are a work in progress. 
+
+We are also exploring a hosted Grafana Docs MCP server (no timeframe yet). 
+
 ## Documentation
 
 - [Architecture and design notes](docs/design/): how the core and adapters fit together, prior art, and cost analysis.
