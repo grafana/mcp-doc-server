@@ -3,7 +3,6 @@
 **gcx** imports the `pkg/grafanadocs` core directly and mounts it as `gcx docs`
 subcommands with full output format support and terminal styling.
 
-
 ## How it works
 
 ```
@@ -32,25 +31,26 @@ the index-backed commands.
 gcx docs search "alerting rules"
 
 # Filter to a product (case-insensitive: exact, then prefix, then substring)
-gcx docs search "configuration" --product tempo
+gcx docs search "traceql query" --product tempo
 
 # Fetch a page (text mode shows raw markdown)
-gcx docs get https://grafana.com/docs/loki/latest/query/
+gcx docs get https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries/
 
 # Extract just one section
-gcx docs get https://grafana.com/docs/loki/latest/query/ --section "Log queries"
-
-# Page through a long document
-gcx docs get https://grafana.com/docs/loki/latest/query/ --offset 80 --limit 80
+gcx docs get https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries/ --section "Comparison operators"
 
 # Show the heading structure
-gcx docs outline https://grafana.com/docs/tempo/latest/
+gcx docs outline https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries/
 
 # List indexed doc products with entry counts
 gcx docs list-products
 
 # List curated canonical URLs (offline; no index)
 gcx docs list-links
+
+# Advanced: page a long doc (Tempo Configure is ~3000 lines; title is Configure Tempo)
+gcx docs get https://grafana.com/docs/tempo/latest/configuration/ --section "Server"
+gcx docs get https://grafana.com/docs/tempo/latest/configuration/ --offset 80 --limit 80
 ```
 
 Catalog leaves use `list-<subject>` so they match the gcx naming guide for
