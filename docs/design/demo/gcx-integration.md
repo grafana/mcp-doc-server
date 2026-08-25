@@ -3,7 +3,6 @@
 **gcx** imports the `pkg/grafanadocs` core directly and mounts it as `gcx docs`
 subcommands with full output format support and terminal styling.
 
-Work lives on the gcx branch `feat/docs-command` (not yet merged).
 
 ## How it works
 

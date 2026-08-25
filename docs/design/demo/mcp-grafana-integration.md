@@ -65,7 +65,7 @@ error forever.
 - `get_doc` → only calls `FetchDoc` (no index needed)
 - `get_doc_outline` → only calls `FetchDoc` (no index needed)
 
-The mcp-grafana server starts fast — it does not block on index loading at
+The Grafana MCP server starts fast. It doesn't block on index loading at
 startup. The index fetches on first search/products call.
 
 ## What users see
