@@ -23,7 +23,7 @@ This repository follows spec-driven development.
 Specs are the source of truth; code is kept consistent with them.
 
 - [`SPECS.md`](SPECS.md) — interface contracts and behavioral invariants.
-- [`NOTES.md`](NOTES.md) — append-only, dated design-decision log.
+- [`NOTES.md`](NOTES.md) — append-only, dated design-decision log for this repository. Consumer wiring (mcp-grafana, gcx) is documented in [`docs/design/demo/`](docs/design/demo/), not here.
 - [`TESTS.md`](TESTS.md) — test scenarios as Setup / Action / Assertion.
 - [`BENCHMARKS.md`](BENCHMARKS.md) — performance targets.
 - [`AGENTS.md`](AGENTS.md) — the SDD convention.

@@ -58,7 +58,7 @@ Paths the agent should check when validating documentation claims against code.
 
 - **Spec-driven development:** Read `SPECS.md` and `NOTES.md` before modifying code. Code changes that alter contracts, invariants, or test scenarios must update the matching spec file in the same change.
 - **Code marker:** Every `.go` file in the repo starts with `// NOTE: Any changes to this file must be reflected in the corresponding SPECS.md or NOTES.md.`
-- **NOTES.md is append-only:** Never edit or delete existing entries. Reverse a decision with an addendum plus a new numbered entry.
+- **NOTES.md is append-only and local to this repo:** Never edit or delete existing entries. Reverse a decision with an addendum plus a new numbered entry. Do not record how mcp-grafana or gcx currently cache or wrap the core — those live in `docs/design/demo/` and will go stale in NOTES.
 - **Invariant numbering:** Invariants in `SPECS.md` are numbered I1–I26. Never remove or weaken one; add or annotate instead.
 - **JSON output:** All MCP tool JSON uses `snake_case` keys (invariant I15). Core types carry no `json` tags by design — adapters own the wire format.
 - **Security:** SSRF allowlist (I3), rate limiting (I9), body-size caps (I10), index scheme validation (I19). See `SPECS.md` §Invariants.
@@ -68,7 +68,7 @@ Paths the agent should check when validating documentation claims against code.
 
 - [`AGENTS.md`](../AGENTS.md) — SDD conventions and working rules for the repo root module.
 - [`SPECS.md`](../SPECS.md) — complete behavioral contract (invariants I1–I26, tool schemas, core API, search ranking, cleanup rules).
-- [`NOTES.md`](../NOTES.md) — append-only decision log (30 entries).
+- [`NOTES.md`](../NOTES.md) — append-only decision log for this repository (not a live snapshot of consumers).
 - [`TESTS.md`](../TESTS.md) — test scenarios mapped to invariants.
 - [`BENCHMARKS.md`](../BENCHMARKS.md) — performance and token-cost targets.
 

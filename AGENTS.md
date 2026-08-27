@@ -12,7 +12,11 @@ such module; each `internal/*` package becomes one as it is built.
 - **`SPECS.md`** — interface contracts and behavioral **invariants**. Invariants are
   precise, machine-checkable claims. Never remove or weaken an existing invariant; add
   or annotate instead.
-- **`NOTES.md`** — **append-only**, dated design-decision log. Entry format:
+- **`NOTES.md`** — **append-only**, dated design-decision log **for this repository**.
+  Record why we chose an API, invariant, adapter, or standalone-binary behavior here.
+  Do not snapshot other repositories (mcp-grafana, gcx, …): they change independently,
+  and a stale NOTES entry looks authoritative to agents. Current consumer wiring lives
+  in `docs/design/demo/`. Entry format:
   ```markdown
   ## N. Title
   *Added: YYYY-MM-DD*
