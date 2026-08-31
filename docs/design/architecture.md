@@ -1,13 +1,15 @@
 # Architecture
 
-A dependency-light Go core (`pkg/grafanadocs`) with thin adapters for three surfaces:
+A dependency-light Go core (`pkg/grafanadocs`) with two thin adapters for the binaries
+this repo ships, plus two downstream hosts that import the core only:
 
-- **mcp-doc-server**: standalone MCP server (stdio) for accessing Grafana docs.
-- **[gcx](https://github.com/grafana/gcx)**: CLI subcommands (`gcx docs search|get|outline|products`).
-- **[mcp-grafana](https://github.com/grafana/mcp-grafana)**: doc tools alongside the other Grafana MCP tools.
+- **mcp-doc-server**: standalone MCP server (stdio) — uses the MCP adapter.
+- **docs**: standalone CLI — uses the cobra adapter.
+- **[gcx](https://github.com/grafana/gcx)**: `gcx docs` subcommands — imports the core, writes its own command layer.
+- **[mcp-grafana](https://github.com/grafana/mcp-grafana)**: doc tools alongside the other Grafana MCP tools — imports the core, writes its own `MustTool` wrappers.
 
-All three import the core directly.
-None import each other's adapters.
+mcp-grafana and gcx do not import the MCP or CLI adapters. Those adapters exist so this
+repo can ship `cmd/mcp-doc-server` and `cmd/docs`; they are not unused.
 
 ## Why an MCP server instead of prompting?
 

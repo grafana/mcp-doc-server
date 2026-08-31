@@ -1,8 +1,14 @@
 # NOTES — mcp-doc-server
 
-Append-only, dated design-decision log. Never delete or edit an existing entry; if a
-decision is reversed, add an `*Addendum (YYYY-MM-DD):*` line to the original entry and
-then add a new numbered entry.
+This file is the *why* for this repository. [`SPECS.md`](SPECS.md) is the live
+contract (*what* must be true). [`TESTS.md`](TESTS.md) and
+[`BENCHMARKS.md`](BENCHMARKS.md) are how we check it. [`AGENTS.md`](AGENTS.md)
+describes the whole suite.
+
+Append-only, dated design-decision log. Never delete or edit an existing entry;
+if a decision is reversed, add an `*Addendum (YYYY-MM-DD):*` line to the original
+entry and then add a new numbered entry. Do not snapshot other repositories here —
+current mcp-grafana and gcx wiring lives in `docs/design/demo/`.
 
 ## 1. Use `llms-full.txt` as the documentation index
 *Added: 2026-06-22*
@@ -260,6 +266,12 @@ and that consumers can adopt their own framework conventions without the core im
 any.
 **Consequence:** SPECS.md gains an "MCP integration form" closed question; entry 10 gets
 an addendum about version independence. No changes to mcp-doc-server code.
+*Addendum (2026-08-27):* The Decision (core-only import, host-owned wrappers) still
+stands. The "Index lifecycle: lazy `sync.Once`" bullet does not. That was a
+point-in-time observation of a prototype host, not a decision of this repo and
+not a live description of mcp-grafana. Do not add further NOTES entries that
+snapshot other repositories. Current consumer wiring lives in
+`docs/design/demo/mcp-grafana-integration.md`.
 
 ## 20. Code-fence-aware processing (headings, cleanup)
 *Added: 2026-06-23*
