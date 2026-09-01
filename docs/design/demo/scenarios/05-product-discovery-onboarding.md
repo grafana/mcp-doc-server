@@ -4,9 +4,10 @@
 products exist, how they relate, and where to start. The `list_products` tool
 provides the map; `search_docs` finds getting-started content.
 
-**Problem:** Grafana Labs has 30+ documented products. A user asks "I need
-observability for my Kubernetes cluster — what should I use?" The agent needs
-to discover available products, then guide the user to the right starting point.
+**Problem:** The index groups documentation into dozens of products. A user asks
+"I need observability for my Kubernetes cluster. What should I use?" The agent
+needs to discover available products, then guide the user to the right starting
+point.
 
 ## Agent workflow
 
@@ -23,56 +24,44 @@ docs products
 
 ```
 NAME                           COUNT
-Grafana                        450
-Grafana Alloy                  120
-Grafana Loki                   95
-Grafana Tempo                  78
-Grafana Mimir                  85
-Grafana Cloud                  200
-Grafana Agent                  60
-Grafana Beyla                  25
-Grafana OnCall                 40
-Grafana k6                     110
+Grafana Agent                  311
+Grafana Alloy                  339
+Grafana Beyla                   46
+Grafana Cloud                 2158
+Grafana                        745
+Grafana Loki                   ...
 ...
-(30+ products)
+(26 product groups)
 ```
 
 ### Step 2: Search for Kubernetes-specific onboarding
 
 ```bash
-docs search "kubernetes observability getting started" --limit 5
+docs search "Kubernetes Monitoring" --product "Grafana Cloud" --limit 3
 ```
 
 ```
-TITLE                                  PRODUCT          URL
-Set up Kubernetes Monitoring           Grafana Cloud    https://grafana.com/docs/grafana-cloud/monitor-infrastructure/kubernetes-monitoring/
-Grafana Alloy on Kubernetes            Grafana Alloy    https://grafana.com/docs/alloy/latest/get-started/install/kubernetes/
-Collect Kubernetes logs                Grafana Loki     https://grafana.com/docs/loki/latest/send-data/kubernetes/
-Kubernetes with Grafana Beyla          Grafana Beyla    https://grafana.com/docs/beyla/latest/setup/kubernetes/
-Monitor Kubernetes with Tempo          Grafana Tempo    https://grafana.com/docs/tempo/latest/getting-started/kubernetes/
+TITLE                       PRODUCT        URL
+Kubernetes Monitoring       Grafana Cloud  https://grafana.com/docs/grafana-cloud/observe-and-act/monitor-infrastructure/kubernetes-monitoring/
+Configure Kubernetes Monitoring Grafana Cloud https://grafana.com/docs/grafana-cloud/observe-and-act/monitor-infrastructure/kubernetes-monitoring/configuration/
 ```
 
 ### Step 3: Deep-dive on the recommended starting point
 
 ```bash
-docs outline https://grafana.com/docs/grafana-cloud/monitor-infrastructure/kubernetes-monitoring/
+docs outline https://grafana.com/docs/grafana-cloud/observe-and-act/monitor-infrastructure/kubernetes-monitoring/
 ```
 
 ```
-LVL  HEADING                    LINE
-1    Kubernetes Monitoring      1
-2    Overview                   3
-2    Before you begin           15
-2    Install the Helm chart     25
-2    What's collected           50
-3    Metrics                    55
-3    Logs                       62
-3    Traces                     68
-2    Next steps                 80
+LVL  HEADING              LINE
+1    Kubernetes Monitoring 3
+2    Overview              9
+2    Guidance and help     16
+2    Explore               42
 ```
 
 ```bash
-docs get https://grafana.com/docs/grafana-cloud/monitor-infrastructure/kubernetes-monitoring/ \
+docs get https://grafana.com/docs/grafana-cloud/observe-and-act/monitor-infrastructure/kubernetes-monitoring/ \
   --section "Overview"
 ```
 
@@ -88,18 +77,16 @@ Agent: For full-stack Kubernetes observability on Grafana Cloud, here's your sta
 | Traces  | Grafana Tempo  | Distributed tracing              |
 | Collect | Grafana Alloy  | Unified telemetry collector      |
 
-Start here: Set up Kubernetes Monitoring (one Helm chart installs everything)
-→ https://grafana.com/docs/grafana-cloud/monitor-infrastructure/kubernetes-monitoring/
-
-This installs Grafana Alloy pre-configured to collect metrics, logs, and traces
-from your cluster and send them to Grafana Cloud.
+Start here: Kubernetes Monitoring
+→ https://grafana.com/docs/grafana-cloud/observe-and-act/monitor-infrastructure/kubernetes-monitoring/
 ```
 
 ## Why `list_products` matters
 
 Without product discovery, an agent would:
+
 - Miss products it doesn't know about (Beyla? Alloy? These are relatively new)
-- Recommend outdated tools (Grafana Agent → now Grafana Alloy)
+- Recommend outdated tools (Grafana Agent is now Grafana Alloy)
 - Not know the breadth of the ecosystem
 
 With it, the agent can map the user's needs to the right combination of products.
@@ -108,7 +95,7 @@ With it, the agent can map the user's needs to the right combination of products
 
 | Tool | Purpose |
 |------|---------|
-| `list_products` | Map the entire product landscape (30+ products) |
+| `list_products` | Map the product groups in the index |
 | `search_docs` | Find onboarding content across products |
 | `get_doc_outline` | Understand page structure before fetching |
-| `get_doc` (section) | Retrieve the overview/getting-started content |
+| `get_doc` (section) | Retrieve the overview content |

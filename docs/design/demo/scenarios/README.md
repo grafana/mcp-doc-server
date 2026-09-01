@@ -11,7 +11,7 @@ Each scenario shows the complete tool call sequence an agent would use.
 | 02 | [Token-efficient retrieval](02-token-efficient-retrieval.md) | Outline → section fetch instead of full page dump | 10x token reduction |
 | 03 | [Coding agent config lookup](03-coding-agent-config-lookup.md) | Mid-task syntax pull during code generation | Deterministic, < 100ms |
 | 04 | [Troubleshooting assistant](04-troubleshooting-assistant.md) | Error message → diagnosis → fix from docs | Cross-product search |
-| 05 | [Product discovery & onboarding](05-product-discovery-onboarding.md) | Map 30+ products, guide to right starting point | list_products as compass |
+| 05 | [Product discovery & onboarding](05-product-discovery-onboarding.md) | Map documented products, guide to right starting point | list_products as compass |
 | 06 | [Multi-tool workflow](06-multi-tool-workflow.md) | Docs + mcp-grafana together for full-cycle tasks | The two-server complement |
 
 ## Common patterns
@@ -25,7 +25,7 @@ All scenarios follow the same retrieval strategy:
 4. Cite the URL    → user can verify
 ```
 
-The outline step is what makes this token-efficient — it's a cheap metadata
+The outline step is what makes this token-efficient: it's a cheap metadata
 call that prevents wasteful full-page fetches.
 
 ## Running the scenarios
@@ -37,9 +37,9 @@ Each scenario includes CLI commands you can run directly:
 go build -o bin/docs ./cmd/docs/
 
 # Then run any command from the scenarios
-./bin/docs search "rate limiting"
-./bin/docs outline https://grafana.com/docs/tempo/latest/metrics-generator/span-metrics/
-./bin/docs get https://grafana.com/docs/tempo/latest/metrics-generator/span-metrics/ --section "Configuration"
+./bin/docs search "traceql query" --product tempo
+./bin/docs outline https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries/
+./bin/docs get https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries/ --section "Comparison operators"
 ```
 
 Or run the full demo script:
