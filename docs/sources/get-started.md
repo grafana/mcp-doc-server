@@ -1,23 +1,21 @@
 ---
 title: Get started
 menuTitle: Get started
-description: Run the Grafana Docs MCP Server CLI to search, outline, and fetch Grafana documentation before installing the server or connecting an MCP client.
+description: Search, outline, and fetch Grafana documentation from the CLI before you install the MCP server or connect a client.
 weight: 4
-topicType: quickstart
-versionDate: 2026-06-25
+topicType: tutorial
+versionDate: 2026-09-01
 ---
 
 # Get started
 
-Run the CLI to search, outline, and fetch Grafana documentation before you install the server or connect an MCP client.
+Using this walkthrough, you can search Grafana documentation and fetch a section from the CLI before you install the server or connect an MCP client.
 
-{{< admonition type="note" >}}
-Grafana Docs MCP Server only retrieves the current documentation. Future plans include being able to retrieve previous versions. 
-{{< /admonition >}}
+The CLI serves current published documentation only. Version-specific retrieval isn't available.
 
 ## Before you begin
 
-You need:
+To follow this guide, you need:
 
 - Go 1.26 or later
 - Git
@@ -25,54 +23,57 @@ You need:
 
 ## Search for a page
 
-Clone the repository and run the CLI directly from source:
+1. Clone the repository:
 
-```bash
-git clone https://github.com/grafana/mcp-doc-server.git
-cd mcp-doc-server
-go run ./cmd/docs/ search "alerting rules" --limit 3
+   ```bash
+   git clone https://github.com/grafana/mcp-doc-server.git
+   cd mcp-doc-server
+   ```
+
+2. Run a search:
+
+   ```bash
+   go run ./cmd/docs/ search "traceql query" --product tempo --limit 3
+   ```
+
+   `go run` compiles on every invocation. For repeated use, build once with `go build -o bin/docs ./cmd/docs/` and run `./bin/docs` instead.
+
+You should see a ranked table. Search results keep the `.md` suffix from the documentation index:
+
+```
+TITLE                           PRODUCT        URL
+Construct a TraceQL query       Grafana Tempo  https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries.md
+Tune TraceQL query performance  Grafana Tempo  https://grafana.com/docs/tempo/latest/traceql/tune-traceql-queries.md
+TraceQL metrics sampling        Grafana Tempo  https://grafana.com/docs/tempo/latest/metrics-from-traces/metrics-queries/sampling-guide.md
 ```
 
-{{< admonition type="note" >}}
-`go run` compiles the binary on every invocation. For repeated use, build once with `go build -o bin/docs ./cmd/docs/` and run `./bin/docs` instead.
-{{< /admonition >}}
-
-You should see a ranked table of matching pages:
-
-```
-TITLE                      PRODUCT  URL
-Configure alerting         Grafana  https://grafana.com/docs/grafana/latest/alerting/
-Alerting rules             Grafana  https://grafana.com/docs/grafana/latest/alerting/alerting-rules/
-...
-```
-
-Ranked results confirm your setup works: Go builds the CLI and reaches the documentation index on `grafana.com`.
+If that table appears, Go built the CLI and reached the index on `grafana.com`.
 
 ## Fetch a section
 
-Pick a URL from the results and fetch a specific section instead of the whole page:
+Pick a URL from the results and fetch one heading instead of the whole page:
 
 ```bash
-go run ./cmd/docs/ get https://grafana.com/docs/grafana/latest/alerting/ --section "Overview"
+go run ./cmd/docs/ get https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries.md --section "Comparison operators"
 ```
 
-The output is cleaned Markdown with front matter, shortcodes, and HTML comments stripped.
+The output is cleaned Markdown: front matter, shortcodes, and HTML comments are gone.
 
 ## Run the full demo
 
-The repository includes a demo script that exercises all four tools with live output:
+The repository includes a script that hits all four tools with live output:
 
 ```bash
 ./docs/design/demo/run-demo.sh
 ```
 
-The script walks through `list_products`, `search_docs`, `get_doc_outline`, and `get_doc` (bounded and section-scoped), plus JSON output mode.
+It walks through `list_products`, `search_docs`, `get_doc_outline`, and `get_doc` (bounded and section-scoped), plus JSON output. Full agent workflows — grounding answers, token-efficient retrieval, configuration lookups during coding — live in `docs/design/demo/scenarios/`.
 
-The `docs/design/demo/scenarios/` directory in the repository has full agent workflows: grounding answers, token-efficient retrieval, configuration lookups during coding, and more.
-
-For a full worked example of how an agent uses these tools, refer to [Tools and CLI reference](../tools/#workflow).
+For a worked example of how an agent uses these tools, refer to [Tools and CLI reference](../tools/#workflow).
 
 ## Next steps
 
-- [Install and connect](../install/): Build the server and connect it to Cursor, Claude Desktop, or Claude Code
-- [Tools reference](../tools/): Tool parameters, output formats, and CLI usage
+You've searched the index and fetched a section. Next:
+
+- [Install and connect](../install/): build the server and connect Cursor, Claude Desktop, or Claude Code
+- [Tools reference](../tools/): parameters, output formats, and CLI flags

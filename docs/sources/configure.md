@@ -1,40 +1,34 @@
 ---
 title: Configure the server
 menuTitle: Configure
-description: Environment variables, built-in limits, and the URL allowlist that control Grafana Docs MCP Server behavior.
+description: Set DOCS_INDEX_URL and review the compiled-in timeouts, rate limits, body-size caps, and URL allowlist.
 weight: 7
 topicType: reference
-versionDate: 2026-06-25
+versionDate: 2026-09-01
 ---
 
 # Configure the server
 
-Grafana Docs MCP Server has one configurable setting; everything else is a built-in limit compiled into the binary.
+One environment variable is configurable. Everything else is compiled into the binary.
 
-## Configurable settings
+## `DOCS_INDEX_URL`
 
-One environment variable controls where the server loads its documentation index from.
-
-### `DOCS_INDEX_URL`
-
-The URL of the documentation index to load.
+Where the server loads the documentation index.
 
 | Property | Value |
 |----------|-------|
 | **Default** | `https://grafana.com/llms-full.txt` |
-| **Constraint** | Must use HTTPS. `file://`, `http://`, and other schemes are rejected before any network call. |
-
-Set it as an environment variable:
+| **Constraint** | HTTPS only. `file://`, `http://`, and other schemes are rejected before any network call. |
 
 ```bash
 DOCS_INDEX_URL=https://example.com/custom-index.txt ./bin/mcp-doc-server
 ```
 
-Or, for a Model Context Protocol (MCP) client, pass it through the `env` field of your server configuration. Refer to [Install and connect](../install/).
+In an MCP client, pass it through the `env` field. Refer to [Install and connect](../install/).
 
 ## Built-in limits
 
-These values are compiled into the binary. Changing them requires a code change; they aren't environment variables or flags. They're documented here so you know the server's behavior.
+These aren't flags. Changing them means changing the code.
 
 ### HTTP timeouts
 
@@ -45,14 +39,14 @@ These values are compiled into the binary. Changing them requires a code change;
 
 ### Rate limiting
 
-All outbound requests to `grafana.com` are rate-limited:
+Page fetches (`FetchDoc`) are rate-limited. Index loads use a separate HTTP client and aren't.
 
 | Setting | Value |
 |---------|-------|
 | Maximum concurrent fetches | 5 |
-| Minimum gap between requests | 200ms |
+| Minimum gap between requests | 200 ms |
 
-The limiter reserves a unique, spaced time slot for each request, so concurrent callers don't all fire at once.
+Each request gets its own spaced time slot, so concurrent callers don't all fire at once.
 
 ### Body size limits
 
@@ -61,25 +55,25 @@ The limiter reserves a unique, spaced time slot for each request, so concurrent 
 | Documentation page | 2 MiB |
 | Documentation index | 10 MiB |
 
-Responses over these limits are truncated at read time to prevent out-of-memory conditions.
+Responses over these limits are truncated at read time.
 
 ### Scanner buffer
 
-The index parser uses a 1 MiB line buffer (versus Go's 64 KiB default) so long index entries aren't silently truncated.
+The index parser uses a 1 MiB line buffer (Go's default is 64 KiB) so long index entries aren't silently truncated.
 
 ## URL allowlist
 
-`get_doc` and `get_doc_outline` only fetch URLs that match:
+`get_doc` and `get_doc_outline` fetch only URLs that match:
 
 - **Scheme:** `https`
 - **Host:** `grafana.com`
 - **Path:** under `/docs/`
 
-The check runs twice, on the original URL and again after the `.md` suffix is added, to prevent path manipulation. Redirects to any non-`grafana.com` host are blocked.
+The check runs twice: on the original URL and again after the `.md` suffix is added. Redirects to any host other than `grafana.com` are blocked.
 
-For the runtime symptoms these limits and allowlist rejections produce, such as startup index errors, truncated responses, or blocked fetches, refer to the [Install and connect](../install/) troubleshooting table.
+If a limit or allowlist rejection shows up at runtime, refer to the [Install and connect](../install/) troubleshooting table.
 
 ## Related resources
 
-- [Install and connect](../install/): passing `DOCS_INDEX_URL` through client configuration, plus troubleshooting startup and index errors
-- [Integrate the core library](../integrate/): how these limits apply when you import the core
+- [Install and connect](../install/)
+- [Integrate the core library](../integrate/)

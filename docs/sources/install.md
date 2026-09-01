@@ -1,20 +1,19 @@
 ---
 title: Install and connect
 menuTitle: Install and connect
-description: Build Grafana Docs MCP Server from source and connect it to Cursor, Claude Desktop, Claude Code, or any MCP client that supports stdio transport.
+description: Build Grafana Docs MCP Server and connect it to Cursor, Claude Desktop, Claude Code, or any stdio MCP client.
 weight: 5
 topicType: task
-versionDate: 2026-06-25
+versionDate: 2026-09-01
 ---
 
 # Install and connect
 
-Build Grafana Docs MCP Server and connect it to your [Model Context Protocol (MCP)](https://modelcontextprotocol.io) client. The server works exclusively with Grafana Labs documentation served from `grafana.com/docs/`.
-At this time, only the most recent versions of published documentation can be retrieved by the Docs MCP Server. 
+Build Grafana Docs MCP Server and add it to your [Model Context Protocol (MCP)](https://modelcontextprotocol.io) client. The server reads Grafana Labs documentation from `grafana.com/docs/` — current published pages only.
 
 ## Before you begin
 
-You need:
+To follow this guide, you need:
 
 - Go 1.26 or later
 - Network access to `grafana.com` (for the index and doc pages)
@@ -22,18 +21,14 @@ You need:
 
 ## Install with `go install`
 
-Install both binaries directly:
-
 ```bash
 go install github.com/grafana/mcp-doc-server/cmd/mcp-doc-server@latest
 go install github.com/grafana/mcp-doc-server/cmd/docs@latest
 ```
 
-The binaries are installed to `$(go env GOPATH)/bin/`. Make sure that directory is in your `PATH`.
+The binaries land in `$(go env GOPATH)/bin/`. Put that directory on your `PATH`.
 
 ## Build from source
-
-Alternatively, clone the repository and build both the MCP server and the standalone CLI:
 
 ```bash
 git clone https://github.com/grafana/mcp-doc-server.git
@@ -44,26 +39,24 @@ go build -o bin/docs ./cmd/docs/
 
 ## Run the server
 
-Start it in stdio mode:
-
 ```bash
 ./bin/mcp-doc-server
 ```
 
-On startup it logs two lines to `stderr`, then waits for JSON-RPC input on `stdin`:
+On startup it logs two lines to `stderr`, then waits for JSON-RPC on `stdin`:
 
 ```
 mcp-doc-server 0.1.0: loading index from https://grafana.com/llms-full.txt
-index loaded: 6645 entries, 24 products
+index loaded: 7211 entries, 26 products
 ```
 
-There's no prompt after that. The server is ready and waiting for your MCP client to connect. The index is approximately 2 MB and typically loads in 1 to 3 seconds.
+There's no prompt after that. The server is waiting for your client. The index is about 1.4 MB and usually loads in 1 to 3 seconds. Entry and product counts change as Grafana Labs publishes documentation.
 
-The server supports stdio transport only. It communicates over stdin/stdout using the MCP JSON-RPC protocol. HTTP and SSE transports are not supported.
+Stdio only — `stdin`/`stdout`. HTTP and SSE aren't supported.
 
 ## Connect your client
 
-Add Grafana Docs MCP Server to your client's MCP configuration. The JSON structure is the same for every client. Only the file location differs:
+The JSON is the same for every client. Only the file location changes:
 
 ```json
 {
@@ -75,17 +68,15 @@ Add Grafana Docs MCP Server to your client's MCP configuration. The JSON structu
 }
 ```
 
-Use an absolute path to the binary. If you used `go install`, the path is typically `<GOPATH>/bin/mcp-doc-server`. Run `go env GOPATH` to find it.
+Use an absolute path. After `go install`, that's typically `<GOPATH>/bin/mcp-doc-server`. Run `go env GOPATH` to find it.
 
-Add this block to the configuration file for your client:
-
-- **Cursor**: `.cursor/mcp.json` in your project root. Confirm the connection in Cursor's MCP settings panel; `grafana-docs` should appear with its four tools.
-- **Claude Desktop**: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows). Restart Claude Desktop after editing; the tools appear under the MCP tools menu.
-- **Claude Code**: `.claude/mcp.json` in your project root. Run `/mcp` in Claude Code to confirm `grafana-docs` is listed.
+- **Cursor**: `.cursor/mcp.json` in your project root. Confirm the connection in **MCP settings**; `grafana-docs` should appear with its four tools.
+- **Claude Desktop**: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows). Restart Claude Desktop after editing; the tools appear under **MCP tools**.
+- **Claude Code**: `.mcp.json` in your project root. Run `/mcp` to confirm `grafana-docs` is listed.
 
 ### Run without a pre-built binary
 
-To skip the build step, point the client at `go run`:
+Point the client at `go run`:
 
 ```json
 {
@@ -100,7 +91,7 @@ To skip the build step, point the client at `go run`:
 
 ### Use a custom index
 
-To load a different index, set `DOCS_INDEX_URL` (HTTPS only) via the `env` field:
+Set `DOCS_INDEX_URL` (HTTPS only) in the `env` field:
 
 ```json
 {
@@ -117,24 +108,22 @@ To load a different index, set `DOCS_INDEX_URL` (HTTPS only) via the `env` field
 
 ## Verify
 
-To confirm the CLI works:
+Confirm the CLI:
 
 ```bash
-./bin/docs search "alerting rules" --limit 3
+./bin/docs search "traceql query" --product tempo --limit 3
 ```
 
-You should see a ranked table of matching pages. For an example of that output, refer to [Get started](../get-started/#search-for-a-page).
+You should see a ranked table of matching pages. For sample output, refer to [Get started](../get-started/#search-for-a-page).
 
-Then confirm the client connection by asking your agent a question that needs a docs lookup, for example, "How does Loki retention work?" The agent should call `search_docs`, then `get_doc_outline` and `get_doc`, and cite a `grafana.com` URL.
-
-For details on all tool parameters and output formats, refer to [Tools and CLI reference](../tools/).
+Then ask your agent something that needs a docs lookup, for example "How does Loki retention work?" It should call `search_docs`, then `get_doc_outline` and `get_doc`, and cite a `grafana.com` URL.
 
 ## Update
 
-To move to a newer version, repeat the install method you used:
+Repeat the method you used:
 
-- If you used `go install`, re-run the install commands with `@latest`.
-- If you built from source, pull the latest changes and rebuild:
+- `go install`: re-run the install commands with `@latest`.
+- From source:
 
 ```bash
 git pull
@@ -142,21 +131,21 @@ go build -o bin/mcp-doc-server ./cmd/mcp-doc-server/
 go build -o bin/docs ./cmd/docs/
 ```
 
-Restart the server so your MCP client loads the new binary. The running version appears in the first startup log line.
+Restart the server so the client loads the new binary. The running version is in the first startup log line.
 
 ## Troubleshooting
 
 | Symptom | Fix |
 |---------|-----|
-| Build fails | Check your Go version is 1.26 or later (`go version`). |
+| Build fails | Check that your Go version is 1.26 or later (`go version`). |
 | Server exits on startup with an index error | The server can't reach `grafana.com`. Check network access and any proxy settings. |
-| `search` returns nothing | Usually a query mismatch. If every search is empty, the index failed to load; check the `stderr` startup logs. |
-| `get_doc` fails mid-session | The index is cached in memory after startup, so `search_docs` and `list_products` continue working offline. However, `get_doc` and `get_doc_outline` fetch pages live and will return errors if the network drops. |
-| Tools don't appear in the client | The `command` path must be absolute, and the client must be restarted after editing its configuration. |
+| `search` returns nothing | Usually a query or product-filter mismatch. Try different terms or drop `--product`. A running process already loaded the index; a failed load exits at startup and shows up in the `stderr` logs. |
+| `get_doc` fails mid-session | The index stays in memory after startup, so `search_docs` and `list_products` still work offline. `get_doc` and `get_doc_outline` fetch pages live and return errors if the network drops. |
+| Tools don't appear in the client | The `command` path must be absolute. Restart the client after editing its configuration. |
 | Permission denied running the binary | Run `chmod +x ./bin/mcp-doc-server` after building. |
-| Need server logs | The server writes diagnostics to `stderr`; check your client's MCP log output. |
+| Need server logs | Diagnostics go to `stderr`. Check your client's MCP log output. |
 
 ## Next steps
 
-- [Tools reference](../tools/): tool parameters, CLI commands, and a full workflow example
+- [Tools reference](../tools/): parameters, CLI commands, and a full workflow
 - [Configure the server](../configure/): environment variables and built-in limits
