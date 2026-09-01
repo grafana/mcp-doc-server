@@ -9,7 +9,9 @@ CYAN='\033[36m'
 GREEN='\033[32m'
 RESET='\033[0m'
 
-DOCS="${DOCS_BIN:-./bin/docs}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/../../.." && pwd)"
+DOCS="${DOCS_BIN:-${REPO_ROOT}/bin/docs}"
 
 header() {
   echo ""
@@ -25,9 +27,12 @@ run() {
 }
 
 # --- Build if needed ---
-if [[ ! -x "$DOCS" ]]; then
-  echo -e "${DIM}Building bin/docs...${RESET}"
-  go build -o bin/docs ./cmd/docs/
+if [[ ! -x "${DOCS}" ]]; then
+  echo -e "${DIM}Building ${DOCS}...${RESET}"
+  (
+    cd -- "${REPO_ROOT}"
+    go build -o ./bin/docs ./cmd/docs
+  )
   echo ""
 fi
 
@@ -78,4 +83,4 @@ header "5. JSON output mode" \
 run "$DOCS" search "tracing instrumentation" -o json --limit 2
 
 echo ""
-echo -e "${BOLD}${GREEN}Demo complete.${RESET} See demo/scenarios/ for full agent workflows."
+echo -e "${BOLD}${GREEN}Demo complete.${RESET} See docs/design/demo/scenarios/ for full agent workflows."
