@@ -48,7 +48,7 @@ It runs `search_docs`, then `get_doc_outline` and `get_doc`, and answers with a 
 
 ## Design
 
-- TF-IDF search. No embeddings, no server-side LLM. Title matches count more than description matches, and exact phrases in a title get a bonus.
+- Term frequency-inverse document frequency (TF-IDF) search. Pages that contain your query terms rank higher, and uncommon terms count more than common ones. No embeddings, no server-side LLM. Title matches count more than description matches, and exact phrases in a title get a bonus.
 - Section-level retrieval. `get_doc` returns a section or a paged slice, not the whole document by default.
 - URL allowlist. The server fetches only `https://grafana.com/docs/` URLs.
 - Rate limiting. Five concurrent page fetches, with a 200 ms gap between requests.

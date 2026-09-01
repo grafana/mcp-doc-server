@@ -2,7 +2,7 @@
 
 A docs-retrieval MCP server that gives AI agents and LLMs live, section-level access to Grafana Labs product documentation.
 
-It exposes four read-only tools (`search_docs`, `get_doc_outline`, `get_doc`, `list_products`) over the pages served from `grafana.com/docs`, backed by a deterministic TF-IDF index with no embeddings and no server-side LLM.
+It exposes four read-only tools (`search_docs`, `get_doc_outline`, `get_doc`, `list_products`) over the pages served from `grafana.com/docs`, backed by a deterministic term frequency-inverse document frequency (TF-IDF) index with no embeddings and no server-side LLM.
 
 Run it as a standalone MCP server in a client such as Cursor, Claude Desktop, or Claude Code, through the [`gcx docs`](https://github.com/grafana/gcx) CLI, or alongside the other tools in [`mcp-grafana`](https://github.com/grafana/mcp-grafana).
 
