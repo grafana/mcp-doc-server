@@ -205,8 +205,10 @@ own tags. This keeps the core free of framework opinions.
 ### Search ranking (decided)
 - **Word-boundary matching:** tokens match against whole words (not substrings). "rate"
   matches an entry with "rate" in title but not "migrate".
-- **TF-IDF weighting:** IDF computed once at index load time; rare terms score higher than
-  ubiquitous ones (e.g., "clustering" > "grafana").
+- **TF-IDF weighting:** Term frequency-inverse document frequency. IDF computed once at
+  index load time; rare terms score higher than ubiquitous ones (e.g., "clustering" >
+  "grafana"). Term frequency here is presence in the title or description, not a raw
+  occurrence count.
 - **Title 3x weight:** title word matches contribute 3× their IDF weight vs. 1× for
   description matches.
 - **All-tokens bonus (1.5×):** entries matching every query token get a 1.5× multiplier.

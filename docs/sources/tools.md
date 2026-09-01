@@ -117,8 +117,10 @@ A JSON array of `title`, `url`, `description`, and `product`:
 
 ### Ranking
 
+Search ranks matching pages with a term frequency-inverse document frequency (TF-IDF) score. Term frequency rewards a page that contains your query words. Inverse document frequency down-weights words that appear on many pages, so a match on `clustering` scores higher than a match on `grafana`, for example.
+
 - **Word-boundary matching**: tokens match whole words. "rate" matches "rate" but not "migrate".
-- **TF-IDF weighting**: rare terms score higher than common ones.
+- **TF-IDF weighting**: uncommon query terms contribute more to the score than common ones.
 - **Title 3x weight**: title matches count three times as much as description matches.
 - **All-tokens bonus (1.5x)**: when every query token matches and the query has more than one token.
 - **Exact phrase bonus (2x)**: when a multi-token query appears verbatim in the title.
