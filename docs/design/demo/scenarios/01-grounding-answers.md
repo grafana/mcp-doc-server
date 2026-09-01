@@ -5,7 +5,7 @@ instead of relying on stale training data. Especially valuable for fast-moving
 products where the model's knowledge cutoff lags reality.
 
 **Problem:** A user asks "How do I configure Tempo's metrics generator?" The LLM's
-training data is 6 months old — the config format changed in the latest release.
+training data is 6 months old. The config format changed in the latest release.
 
 ## Agent workflow
 
@@ -18,63 +18,61 @@ Agent thinks: I should check the current docs rather than rely on my training da
 ### Step 1: Search for relevant pages
 
 ```bash
-docs search "metrics generator span metrics" --product tempo
+docs search "metrics generator" --product tempo --limit 3
 ```
 
 ```
-TITLE                              PRODUCT        URL
-Span metrics                       Grafana Tempo  https://grafana.com/docs/tempo/latest/metrics-generator/span-metrics/
-Metrics-generator                  Grafana Tempo  https://grafana.com/docs/tempo/latest/metrics-generator/
-Metrics-generator configuration    Grafana Tempo  https://grafana.com/docs/tempo/latest/configuration/#metrics-generator
+TITLE                PRODUCT        URL
+Metrics-generator    Grafana Tempo  https://grafana.com/docs/tempo/latest/metrics-from-traces/metrics-generator/
+Metrics-generator    Grafana Tempo  https://grafana.com/docs/tempo/latest/reference-tempo-architecture/components/metrics-generator/
 ```
 
 ### Step 2: Get the outline to find the right section
 
 ```bash
-docs outline https://grafana.com/docs/tempo/latest/metrics-generator/span-metrics/
+docs outline https://grafana.com/docs/tempo/latest/metrics-from-traces/metrics-generator/
 ```
 
 ```
-LVL  HEADING                    LINE
-1    Span metrics               1
-2    Overview                   3
-2    Configuration              15
-3    Filtering spans            28
-3    Histogram buckets          42
-2    Example                    56
+LVL  HEADING              LINE
+1    Metrics-generator    3
+2    Architecture         7
+3    Service graphs       25
+3    Span metrics         33
+2    Native histograms    53
 ```
 
-### Step 3: Fetch just the Configuration section
+### Step 3: Fetch just the Native histograms section
 
 ```bash
-docs get https://grafana.com/docs/tempo/latest/metrics-generator/span-metrics/ \
-  --section "Configuration"
+docs get https://grafana.com/docs/tempo/latest/metrics-from-traces/metrics-generator/ \
+  --section "Native histograms"
 ```
 
-The agent gets ~30 lines of current, accurate config documentation — not the
-entire 200-line page, and not hallucinated syntax from 6 months ago.
+The agent gets the current section, not the entire page, and not hallucinated
+syntax from 6 months ago.
 
 ### Step 4: Answer with citation
 
 ```
-Agent: Here's how to configure Tempo's span metrics generator:
+Agent: Here's how Tempo's metrics-generator emits native histograms:
 
 [provides answer based on fetched content]
 
-Source: https://grafana.com/docs/tempo/latest/metrics-generator/span-metrics/
+Source: https://grafana.com/docs/tempo/latest/metrics-from-traces/metrics-generator/
 ```
 
 ## Why this matters
 
-- **No hallucination risk** — the answer comes from the live docs, not training data
-- **Token efficient** — only the relevant section was fetched (~30 lines vs 200+)
-- **Traceable** — the source URL is included so the user can verify
-- **Always current** — fetches the `latest` channel, reflecting the newest release
+- **No hallucination risk:** the answer comes from the live docs, not training data
+- **Token efficient:** only the relevant section was fetched
+- **Traceable:** the source URL is included so the user can verify
+- **Always current:** fetches the `latest` channel, reflecting the newest release
 
 ## Tools used
 
 | Tool | Purpose |
 |------|---------|
-| `search_docs` | Find the right page in 2,000+ doc entries |
+| `search_docs` | Find the right page in the index |
 | `get_doc_outline` | Identify the exact section needed |
 | `get_doc` (section) | Fetch only what's needed for the answer |

@@ -1,44 +1,44 @@
 ---
 title: Grafana Docs MCP Server
 menuTitle: Grafana Docs MCP Server
-description: Grafana Docs MCP Server is an MCP server that gives AI agents live access to Grafana Labs product documentation instead of relying on stale training data.
+description: Grafana Docs MCP Server is an MCP server that lets AI agents search, outline, and fetch Grafana Labs documentation from grafana.com/docs.
 weight: 1
 topicType: introduction
-versionDate: 2026-06-25
+versionDate: 2026-09-01
 cards:
   items:
     - title: Overview
-      description: Learn what Grafana Docs MCP Server does, when to use it, and how it works.
+      description: What the server does, who it's for, and how retrieval works.
       href: overview/
       height: 24
     - title: Cost
-      description: How costs break down. The server adds no inference cost, so you pay only for the agent's tokens.
+      description: The server adds no inference cost. You pay the agent's tokens.
       href: cost/
       height: 24
     - title: Get started
-      description: Run the CLI to search, outline, and fetch Grafana documentation.
+      description: Search, outline, and fetch docs from the CLI.
       href: get-started/
       height: 24
     - title: Install and connect
-      description: Build the server and connect it to Cursor, Claude Desktop, or Claude Code.
+      description: Build the server and add it to Cursor, Claude Desktop, or Claude Code.
       href: install/
       height: 24
     - title: Tools reference
-      description: Tool parameters, CLI usage, and a full workflow example.
+      description: Parameters, CLI flags, and a search-outline-fetch example.
       href: tools/
       height: 24
     - title: Configure the server
-      description: Environment variables, built-in limits, and the URL allowlist.
+      description: DOCS_INDEX_URL, rate limits, and the URL allowlist.
       href: configure/
       height: 24
     - title: Integrate the core library
-      description: Embed the pkg/grafanadocs core in your own Go project.
+      description: Import pkg/grafanadocs in your own Go project.
       href: integrate/
       height: 24
   title_class: pt-0 lh-1
 hero:
   title: Grafana Docs MCP Server
-  description: Give AI agents live access to Grafana Labs product documentation instead of relying on stale training data.
+  description: Grafana Docs MCP Server is an MCP server that lets AI agents search, outline, and fetch Grafana Labs documentation from grafana.com/docs.
   level: 1
   height: 110
 ---
@@ -47,12 +47,14 @@ hero:
 
 ## Overview
 
-Give your AI agent live, citable Grafana Labs documentation during a conversation instead of stale training data. Grafana Docs MCP Server is a Model Context Protocol (MCP) server: agents search, browse, and retrieve current documentation from `grafana.com/docs/` as they answer.
+AI agents answer from training data. That cutoff can be months old, incomplete, or wrong for the version you're running.
 
-Because the server retrieves individual sections rather than entire pages, agents get exactly the content they need at a low token cost, with citable source URLs. The server runs no large language model (LLM) of its own, so it adds no inference cost.
+Grafana Docs MCP Server is a [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server. During a conversation, the agent searches `grafana.com/docs/`, reads the heading outline of a page, and fetches the section it needs as cleaned Markdown, with a source URL it can cite.
 
-For what the server does, when to use it, and how retrieval works, refer to the [Overview](overview/).
+It retrieves sections rather than whole pages, so token use stays low. The server doesn't run an LLM, so it adds no inference cost. It serves current published documentation only.
 
-## Get started
+The same retrieval ships in [gcx](https://github.com/grafana/gcx) (`gcx docs`) and [mcp-grafana](https://github.com/grafana/mcp-grafana). Use this project when you want a standalone MCP server that exposes only the docs tools.
+
+## Explore
 
 {{< card-grid key="cards" type="simple" >}}

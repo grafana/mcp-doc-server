@@ -1,34 +1,21 @@
 ---
 title: Integrate the core library
 menuTitle: Integrate
-description: Import the pkg/grafanadocs core library into a Go project to add Grafana documentation search and retrieval without MCP or CLI dependencies.
+description: Import pkg/grafanadocs to search and fetch Grafana documentation from Go, without MCP or CLI dependencies.
 weight: 8
-topicType: task
-versionDate: 2026-06-25
+topicType: reference
+versionDate: 2026-09-01
 ---
 
 # Integrate the core library
 
-This page is for Go developers embedding the core library in their own projects. To run the server as-is, refer to [Install and connect](../install/).
+If you want the MCP server as-is, refer to [Install and connect](../install/). This page is for embedding `pkg/grafanadocs` in your own Go project.
 
-Import `pkg/grafanadocs` into your Go project to add Grafana documentation retrieval without depending on Model Context Protocol (MCP) or CLI frameworks. The core is dependency-light, just the Go standard library.
+The core uses the Go standard library only. It doesn't depend on MCP or Cobra. Timeouts, rate limits, and body-size caps are the same values documented in [Configure the server](../configure/).
 
-## Architecture
-
-The core package (`pkg/grafanadocs`) has no dependencies on MCP or CLI frameworks. The MCP server and CLI adapters live in the `pkg/grafanadocs/mcp` and `pkg/grafanadocs/cli` packages, which import the core and wire it to `mcp-go` and Cobra respectively.
-
-Two other projects import the core library directly:
-
-- [mcp-grafana](https://github.com/grafana/mcp-grafana): adds doc tools to its MCP server
-- [gcx](https://github.com/grafana/gcx): exposes `gcx docs` commands
-
-Both consumers import `pkg/grafanadocs` directly and write their own idiomatic wrappers; they don't import the MCP or CLI adapters.
-
-For the timeout, rate-limit, and body-size values these packages enforce, refer to [Configure the server](../configure/).
+[mcp-grafana](https://github.com/grafana/mcp-grafana) and [gcx](https://github.com/grafana/gcx) import this package and write their own wrappers. They don't import the MCP or CLI adapters.
 
 ## Before you begin
-
-You need:
 
 - A Go module (Go 1.26+)
 - Network access to `grafana.com`
@@ -41,7 +28,7 @@ go get github.com/grafana/mcp-doc-server/pkg/grafanadocs
 
 ## Complete example
 
-This program loads the index, runs one search, fetches the top result, and prints its opening lines. The sections that follow explain each call in detail.
+This program loads the index, searches once, fetches the top result, and prints the first 20 lines:
 
 ```go
 package main
@@ -62,7 +49,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	results := grafanadocs.Search(idx, "alerting rules", grafanadocs.SearchOpts{Limit: 1})
+	results := grafanadocs.Search(idx, "traceql query", grafanadocs.SearchOpts{Limit: 1})
 	if len(results) == 0 {
 		log.Fatal("no matching pages")
 	}
@@ -78,9 +65,11 @@ func main() {
 }
 ```
 
+The rest of this page unpacks each call.
+
 ## Load the index
 
-Load the catalog once and reuse it for all searches:
+Load the catalog once and reuse it:
 
 ```go
 import "github.com/grafana/mcp-doc-server/pkg/grafanadocs"
@@ -91,28 +80,28 @@ if err != nil {
 }
 ```
 
-For testing or custom sources, load from a reader:
+For tests or fixtures, load from a reader:
 
 ```go
 idx, err := grafanadocs.LoadIndexFromReader(reader)
 ```
 
-The caller owns the index lifecycle. A common pattern is lazy initialization with `sync.Once` on first use.
+You own the lifecycle. Lazy `sync.Once` on first use is a common pattern.
 
 ## Search the index
 
 ```go
-results := grafanadocs.Search(idx, "alerting rules", grafanadocs.SearchOpts{
-    Product: "Grafana",
+results := grafanadocs.Search(idx, "traceql query", grafanadocs.SearchOpts{
+    Product: "tempo",
     Limit:   5,
 })
 
 for _, entry := range results {
-    fmt.Printf("%s — %s\n", entry.Title, entry.URL)
+    fmt.Printf("%s: %s\n", entry.Title, entry.URL)
 }
 ```
 
-`SearchOpts.Product` filters to a specific product (empty means all). `Limit` caps results (0 defaults to 5). `Search` makes no network calls and never returns an error; an empty slice means no matches.
+`SearchOpts.Product` filters to one product (empty means all). `Limit` caps results (`0` defaults to 5). `Search` makes no network calls and never returns an error. An empty slice means no matches.
 
 ## Fetch a page
 
@@ -123,7 +112,7 @@ if err != nil {
 }
 ```
 
-`FetchDoc` returns cleaned Markdown. It enforces the URL allowlist (only `grafana.com/docs/`) and rate limiting automatically. The URL works with or without a trailing `.md`, so a `Search` result URL can be passed straight through.
+`FetchDoc` returns cleaned Markdown. It enforces the `grafana.com/docs/` allowlist and rate limiting. The URL works with or without a trailing `.md`, so you can pass a `Search` result straight through.
 
 ## Get the heading outline
 
@@ -135,8 +124,6 @@ for _, h := range headings {
 ```
 
 ## Extract a section or page slice
-
-Use `Excerpt` for bounded retrieval:
 
 ```go
 // Extract by section heading
@@ -154,7 +141,7 @@ fmt.Printf("Lines %d-%d of %d\n", result.Start, result.End, result.Total)
 fmt.Println(result.Content)
 ```
 
-`Excerpt` never errors. When `Limit` is 0 it defaults to 80 lines, so it won't return the whole page unless you raise the limit. If a named `Section` isn't found, `result.Content` is empty; check for that.
+`Excerpt` never errors. `Limit` `0` defaults to 80 lines: a short page comes back in full, a long one comes back as a slice unless you raise the limit. If a named `Section` isn't found, `result.Content` is empty.
 
 ## List products
 
@@ -167,17 +154,15 @@ for _, p := range products {
 
 ## Mount the MCP adapter
 
-To build an MCP server, register all four tools:
-
 ```go
 import mcpadapter "github.com/grafana/mcp-doc-server/pkg/grafanadocs/mcp"
 
 mcpadapter.New(idx).Register(srv)
 ```
 
-## Mount the CLI adapter
+That registers all four tools.
 
-To build a cobra-based CLI, mount the docs command group:
+## Mount the CLI adapter
 
 ```go
 import "github.com/grafana/mcp-doc-server/pkg/grafanadocs/cli"
@@ -185,24 +170,24 @@ import "github.com/grafana/mcp-doc-server/pkg/grafanadocs/cli"
 rootCmd.AddCommand(cli.Command(idx))
 ```
 
-This adds `docs search`, `docs get`, `docs outline`, and `docs products`.
+That adds `docs search`, `docs get`, `docs outline`, and `docs products`.
 
 ## Error handling
 
 | Function | Returns errors? | Common causes | Safe to retry? |
 |----------|-----------------|---------------|------------|
-| `LoadIndex` | Yes | Non-HTTPS URL, network failure, non-200 status, oversized index | Network and 5xx: yes. Bad URL or scheme: no. |
+| `LoadIndex` | Yes | Non-HTTPS URL, network failure, non-200 status | Network and 5xx: yes. Bad URL or scheme: no. |
 | `FetchDoc` | Yes | Allowlist rejection (wrong scheme, host, or path), network failure, non-200 status, blocked redirect | Network and 5xx: yes. Allowlist rejection: no. |
-| `Search` | No | None (returns empty slice on no match) | N/A |
+| `Search` | No | None (empty slice on no match) | N/A |
 | `Outline` | No | None | N/A |
 | `Excerpt` | No | None (empty `Content` when a section isn't found) | N/A |
-| `LoadIndexFromReader` | Yes | Malformed index stream | No |
+| `LoadIndexFromReader` | Yes | Reader I/O errors, including lines longer than the 1 MiB scanner buffer | No |
 
-All errors are wrapped with a `grafanadocs:` prefix, so you can match on them with `errors.Is`/`errors.As` or string inspection.
+Errors use a `grafanadocs:` prefix. There are no sentinel types, so match on the prefix with string inspection. `errors.Is` works only when the error wraps a standard library error, for example `context.Canceled`.
 
 ## Concurrency
 
-After construction, `*Index` is safe for concurrent reads; `Search` and `Products` can run from many goroutines. `FetchDoc`'s rate limiter is process-global, so all callers in the process share the same five-concurrent / 200ms-gap budget.
+After construction, `*Index` is safe for concurrent reads. `Search` and `Products` can run from many goroutines. `FetchDoc`'s rate limiter is process-global: every caller shares the five-concurrent / 200 ms-gap budget.
 
 ## Index lifecycle patterns
 
@@ -212,9 +197,9 @@ After construction, `*Index` is safe for concurrent reads; `Search` and `Product
 | Lazy `sync.Once` | CLI tools or services where some commands don't need it |
 | Load from reader | Testing with fixture data |
 
-Commands that only call `FetchDoc` (like `get` and `outline`) never need the index loaded.
+`get` and `outline` only call `FetchDoc`. They don't need the index.
 
 ## Related resources
 
-- [Configure the server](../configure/): the timeout and rate limit values these functions enforce
-- [Tools and CLI reference](../tools/): the input/output contracts exposed by the adapters
+- [Configure the server](../configure/)
+- [Tools and CLI reference](../tools/)

@@ -15,7 +15,7 @@ User: Add a recording rule to my Mimir ruler that pre-computes the p99 latency
       for the payments service, grouped by region.
 ```
 
-### Step 1: Check existing rules (mcp-grafana — live instance)
+### Step 1: Check existing rules (mcp-grafana, live instance)
 
 ```
 Agent calls mcp-grafana: list_prometheus_rules()
@@ -24,32 +24,30 @@ Agent calls mcp-grafana: list_prometheus_rules()
 
 The agent now knows the namespace structure and existing rules.
 
-### Step 2: Look up recording rule syntax (mcp-doc-server — docs)
+### Step 2: Look up recording rule syntax (mcp-doc-server, docs)
 
 ```bash
-docs search "recording rules configuration" --product mimir --limit 3
+docs search "ruler recording rules" --product mimir --limit 3
 ```
 
 ```
-TITLE                           PRODUCT         URL
-Configure recording rules       Grafana Mimir   https://grafana.com/docs/mimir/latest/references/architecture/components/ruler/recording-rules/
-Ruler configuration             Grafana Mimir   https://grafana.com/docs/mimir/latest/configure/configuration-parameters/#ruler
-Mimirtool rules                 Grafana Mimir   https://grafana.com/docs/mimir/latest/manage/tools/mimirtool/#rules
+TITLE                          PRODUCT         URL
+(Optional) Grafana Mimir ruler Grafana Mimir   https://grafana.com/docs/mimir/latest/references/architecture/components/ruler/
 ```
 
 ```bash
-docs get https://grafana.com/docs/mimir/latest/references/architecture/components/ruler/recording-rules/ \
-  --section "Configuration"
+docs get https://grafana.com/docs/mimir/latest/references/architecture/components/ruler/ \
+  --section "Recording rules"
 ```
 
-### Step 3: Look up PromQL histogram syntax (docs)
+### Step 3: Look up histogram syntax (docs)
 
 ```bash
-docs search "histogram_quantile recording rule" --limit 3
+docs search "histogram" --product grafana --limit 3
 ```
 
-The agent pulls the exact `histogram_quantile` function documentation to ensure
-correct syntax.
+The agent pulls related histogram documentation to keep the PromQL expression
+accurate.
 
 ### Step 4: Generate the rule (combining both sources)
 
@@ -66,7 +64,7 @@ groups:
           severity: info
 ```
 
-### Step 5: Apply the rule (mcp-grafana — live instance)
+### Step 5: Apply the rule (mcp-grafana, live instance)
 
 ```
 Agent calls mcp-grafana: push_prometheus_rules(namespace, group, rules)
@@ -95,7 +93,7 @@ Together, they give an agent both **awareness** (what's running) and
 
 | Without docs server | Without live instance server |
 |--------------------|-----------------------------|
-| Agent guesses syntax → may generate invalid config | Agent writes correct config → doesn't know current state |
+| Agent guesses syntax and may generate invalid config | Agent writes correct config but doesn't know current state |
 | Hallucinated field names that don't exist in latest | Duplicates existing rules it couldn't see |
 | No link to source for user verification | Can't apply the change |
 

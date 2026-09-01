@@ -1,15 +1,15 @@
 ---
 title: Tools and CLI reference
 menuTitle: Tools
-description: Reference for the four Grafana Docs MCP Server tools (search_docs, get_doc_outline, get_doc, and list_products) with parameters, output examples, and CLI usage.
+description: Parameters, output, and CLI flags for search_docs, get_doc_outline, get_doc, and list_products.
 weight: 6
 topicType: reference
-versionDate: 2026-06-25
+versionDate: 2026-09-01
 ---
 
 # Tools and CLI reference
 
-Grafana Docs MCP Server exposes four tools, available both as Model Context Protocol (MCP) tools and as `docs` CLI commands. They share the same data shapes, so JSON output is identical across both surfaces.
+Four tools, available as MCP tools and as `docs` CLI commands. JSON output is the same on both surfaces.
 
 | Tool | CLI command | Purpose |
 |------|-------------|---------|
@@ -18,18 +18,17 @@ Grafana Docs MCP Server exposes four tools, available both as Model Context Prot
 | `get_doc` | `docs get` | Fetch cleaned Markdown, by section or line range |
 | `list_products` | `docs products` | List product documentation groups |
 
-To call these from Go instead of through MCP or the CLI, each tool maps to a core library function: `search_docs` to `Search`, `get_doc_outline` to `Outline`, `get_doc` to `FetchDoc` with `Excerpt`, and `list_products` to `Products`. 
-Refer to [Integrate the core library](../integrate/).
+From Go, those map to `Search`, `Outline`, `FetchDoc` plus `Excerpt`, and `Products`. Refer to [Integrate the core library](../integrate/).
 
 ## Workflow
 
-Agents narrow in progressively: search, outline, then fetch only the section they need.
+Search, outline, then fetch one section:
 
-![Sequence diagram showing the full tool workflow: the agent searches for pages, requests a page outline, and fetches one section while the server retrieves documentation on demand](../tools-workflow.svg)
+![Sequence diagram showing the full tool workflow: the agent searches for pages, requests a page outline, and fetches one section while the server retrieves documentation on demand](tools-workflow.svg)
 
 ### Worked example
 
-**1. Search** for pages:
+1. Search for pages:
 
 ```json
 {"query": "metrics generator", "product": "tempo", "limit": 3}
@@ -39,20 +38,20 @@ Agents narrow in progressively: search, outline, then fetch only the section the
 [
   {
     "title": "Metrics-generator",
-    "url": "https://grafana.com/docs/tempo/latest/metrics-from-traces/metrics-generator/",
+    "url": "https://grafana.com/docs/tempo/latest/metrics-from-traces/metrics-generator.md",
     "description": "Generate metrics from incoming traces.",
     "product": "Grafana Tempo"
   },
   {
     "title": "Metrics-generator",
-    "url": "https://grafana.com/docs/tempo/latest/reference-tempo-architecture/components/metrics-generator/",
+    "url": "https://grafana.com/docs/tempo/latest/reference-tempo-architecture/components/metrics-generator.md",
     "description": "The metrics-generator component.",
     "product": "Grafana Tempo"
   }
 ]
 ```
 
-**2. Outline** the top result:
+2. Outline the top result:
 
 ```json
 {"url": "https://grafana.com/docs/tempo/latest/metrics-from-traces/metrics-generator/"}
@@ -69,7 +68,7 @@ Agents narrow in progressively: search, outline, then fetch only the section the
 }
 ```
 
-**3. Fetch** just the section you need:
+3. Fetch the section you need:
 
 ```json
 {
@@ -91,7 +90,7 @@ Agents narrow in progressively: search, outline, then fetch only the section the
 
 ## `search_docs`
 
-Search Grafana documentation by keyword. Returns matching pages ranked by relevance.
+Returns matching pages ranked by relevance.
 
 ### Parameters
 
@@ -103,13 +102,13 @@ Search Grafana documentation by keyword. Returns matching pages ranked by releva
 
 ### Output
 
-A JSON array of entries, each with `title`, `url`, `description`, and `product` (all strings).
+A JSON array of `title`, `url`, `description`, and `product`:
 
 ```json
 [
   {
     "title": "Grafana Alerting",
-    "url": "https://grafana.com/docs/grafana/latest/alerting/",
+    "url": "https://grafana.com/docs/grafana/latest/alerting.md",
     "description": "Learn about the Grafana Alerting system and how it works.",
     "product": "Grafana"
   }
@@ -117,8 +116,6 @@ A JSON array of entries, each with `title`, `url`, `description`, and `product` 
 ```
 
 ### Ranking
-
-Results use a deterministic scoring algorithm:
 
 - **Word-boundary matching**: tokens match whole words. "rate" matches "rate" but not "migrate".
 - **TF-IDF weighting**: rare terms score higher than common ones.
@@ -128,22 +125,22 @@ Results use a deterministic scoring algorithm:
 
 ### Product filter
 
-The `product` value resolves to canonical names in precedence order, stopping at the first level that matches anything:
+The `product` value resolves in this order and stops at the first level that matches:
 
-1. **Exact** (case-insensitive): `Grafana Loki`
-2. **Prefix**: `Grafana` matches "Grafana Loki", "Grafana Mimir", etc.
-3. **Partial**: `loki` matches "Grafana Loki"
+1. **Exact** (case-insensitive): `Grafana Loki` selects only that product.
+2. **Prefix**: `Grafana L` matches "Grafana Loki". Exact match is tried first, so `Grafana` selects the Grafana product only and doesn't add Loki or Mimir.
+3. **Partial**: `loki` matches "Grafana Loki".
 
-Use `list_products` to discover valid names.
+Use `list_products` to see valid names.
 
 ### Empty results
 
-When nothing matches, the tool returns a plain-text message (not a JSON array) with guidance, suggesting broader terms, or, if a product filter was set, suggesting you broaden it or call `list_products`.
+When nothing matches, the tool returns a plain-text message (not a JSON array). It suggests broader terms, or, if you set a product filter, broadening that filter or calling `list_products`.
 
 ### Examples
 
 ```json
-{"query": "rate limiting"}
+{"query": "traceql query", "product": "tempo"}
 {"query": "retention", "product": "Loki"}
 {"query": "alerting rules", "limit": 10}
 ```
@@ -152,7 +149,7 @@ When nothing matches, the tool returns a plain-text message (not a JSON array) w
 
 ## `get_doc_outline`
 
-Get the heading outline of a page. Use it to find section names before calling `get_doc` with a `section`.
+Heading outline of a page. Use it to find section names before calling `get_doc` with a `section`.
 
 ### Parameters
 
@@ -161,8 +158,6 @@ Get the heading outline of a page. Use it to find section names before calling `
 | `url` | string | Yes | None | The `grafana.com/docs/` URL to inspect. |
 
 ### Output
-
-A JSON object with the page `url` and an array of `headings`:
 
 ```json
 {
@@ -179,7 +174,7 @@ Each heading has `level` (1 = `#`, 2 = `##`, …), `text` (formatting stripped),
 
 ### Parsing rules
 
-The outline parses only headings that start with `#`. Additionally:
+Only headings that start with `#`. Also:
 
 - Headings inside fenced code blocks are excluded.
 - Lines indented four or more spaces are treated as code, not headings.
@@ -192,7 +187,7 @@ The same `https://grafana.com/docs/` allowlist as `get_doc` applies.
 
 ## `get_doc`
 
-Fetch a page as cleaned Markdown. Supports section extraction and offset/limit paging for bounded retrieval.
+A page as cleaned Markdown. You can extract a section or page by line range.
 
 ### Parameters
 
@@ -214,27 +209,29 @@ Fetch a page as cleaned Markdown. Supports section extraction and offset/limit p
 }
 ```
 
-`content` is the cleaned Markdown, `url` is the canonical source (for citation), `total_lines` is the full document length, and `returned_range` is the 1-indexed `[start, end]` of what came back.
+`content` is the cleaned Markdown, `url` is the source to cite, `total_lines` is the full document length, and `returned_range` is the 1-indexed `[start, end]` of what came back.
 
 ### Section extraction
 
-When `section` is set, `get_doc` returns the content from that heading to the next heading of equal or higher level. Matching is case-insensitive against the heading text. Use `get_doc_outline` first to find exact names.
+When `section` is set, you get that heading through the next heading of equal or higher level. Matching is case-insensitive. Use `get_doc_outline` first if you need exact names.
 
 ### Paging
 
-When `section` isn't set, use `offset` and `limit`. The default `limit` is 80 lines; `get_doc` never returns the whole page unless you raise the limit. Use `total_lines` and `returned_range` to page through a long document.
+When `section` isn't set, use `offset` and `limit`. Default `limit` is 80 lines: a short page comes back in full, a long one comes back as a slice unless you raise the limit. Use `total_lines` and `returned_range` to page through.
 
 ### Content cleanup
 
-The returned Markdown is stripped of front matter, Hugo shortcodes, and HTML comments; blank lines are collapsed. Code blocks are preserved intact.
+Front matter, Hugo shortcodes, and HTML comments are stripped. Blank lines are collapsed. Code blocks stay intact.
 
 ### Errors
 
-If `section` is set but no matching heading exists, the tool returns an error message rather than content:
+If `section` is set but no heading matches, the MCP tool returns:
 
 ```
 section "Retention" not found. Use get_doc_outline to see available headings.
 ```
+
+The `docs get` CLI exits with an error that names the missing section.
 
 ### Examples
 
@@ -248,31 +245,31 @@ section "Retention" not found. Use get_doc_outline to see available headings.
 
 ## `list_products`
 
-List all product documentation groups with their page counts. Use it to discover products for filtering `search_docs`. Takes no parameters.
+Product documentation groups and their page counts. Use it to discover names for `search_docs`. No parameters.
 
 ### Output
 
 ```json
 {
   "products": [
-    {"name": "Grafana", "count": 892},
-    {"name": "Grafana Loki", "count": 245},
-    {"name": "Grafana Tempo", "count": 178}
+    {"name": "Grafana", "count": 745},
+    {"name": "Grafana Loki", "count": 188},
+    {"name": "Grafana Tempo", "count": 166}
   ]
 }
 ```
 
-Each product has a `name` and a `count` of indexed pages.
+Each product has a `name` and a `count` of indexed pages. Counts change as Grafana Labs publishes documentation.
 
 ### What counts as a product
 
-Products come from the `## ... documentation` headers in the index. "Documentation home" and "Copyright notice" are excluded, and a trailing "documentation" is stripped from each name.
+Products come from the `## ... documentation` headers in the index. "Documentation home" and "Copyright notice" are excluded. A trailing "documentation" is stripped from each name.
 
 ---
 
 ## CLI usage
 
-The `docs` CLI mirrors the tools in a terminal-friendly form, useful for testing, scripting, and direct access without an MCP client.
+The `docs` CLI is the same tools in a terminal. Useful for testing and scripting without an MCP client.
 
 ### Output formats
 
@@ -280,12 +277,12 @@ Every command accepts `-o` / `--output`:
 
 | Format | Description |
 |--------|-------------|
-| `text` | Human-readable aligned tables or raw Markdown (default) |
+| `text` | Aligned tables or raw Markdown (default) |
 | `json` | Indented JSON |
 | `yaml` | YAML |
-| `agents` | Compact single-line JSON (for machine consumption) |
+| `agents` | Compact single-line JSON |
 
-JSON and YAML keys match the MCP tool output exactly.
+JSON and YAML keys match the MCP tool output.
 
 ### `docs search`
 
@@ -300,7 +297,7 @@ docs search <query> [flags]
 | `-o`, `--output` | `text` | Output format |
 
 ```bash
-docs search "rate limiting"
+docs search "traceql query" --product tempo
 docs search "alerting rules" --limit 10
 docs search "retention" --product "Grafana Loki"
 docs search clustering -o json
@@ -322,12 +319,12 @@ docs get <url> [flags]
 | `-o`, `--output` | `text` | Output format |
 
 ```bash
-docs get https://grafana.com/docs/loki/latest/configure/
+docs get https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries/ --section "Comparison operators"
 docs get https://grafana.com/docs/grafana/latest/alerting/ --section "Overview"
-docs get https://grafana.com/docs/mimir/latest/configure/configuration-parameters/ --offset 100 --limit 50
+docs get https://grafana.com/docs/tempo/latest/configuration/ --offset 80 --limit 80
 ```
 
-`get` fetches directly from `grafana.com` and doesn't need the index.
+`get` fetches from `grafana.com` and doesn't need the index.
 
 ### `docs outline`
 
@@ -340,11 +337,11 @@ docs outline <url> [flags]
 | `-o`, `--output` | `text` | Output format |
 
 ```bash
-docs outline https://grafana.com/docs/grafana/latest/alerting/
-docs outline https://grafana.com/docs/loki/latest/configure/ -o json
+docs outline https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries/
+docs outline https://grafana.com/docs/grafana/latest/alerting/ -o json
 ```
 
-Like `get`, `outline` doesn't need the index.
+Same as `get`: no index required.
 
 ### `docs products`
 
@@ -365,7 +362,7 @@ docs products -o json
 
 ### Index loading
 
-The CLI loads the index lazily; only `search` and `products` need it. `get` and `outline` fetch pages directly and run with no startup delay. Set `DOCS_INDEX_URL` to override the index location.
+Only `search` and `products` load the index. `get` and `outline` fetch pages directly and start immediately. Set `DOCS_INDEX_URL` to override the index location.
 
 ### Exit codes
 
@@ -376,14 +373,12 @@ The CLI loads the index lazily; only `search` and `products` need it. `get` and 
 
 ### Piping
 
-The `agents` format pairs well with `jq` for scripting:
-
 ```bash
 docs search "alerting" -o agents | jq -r '.[].url'
 ```
 
 ## Related resources
 
-- [Install and connect](../install/): build the binaries and connect a client
-- [Configure the server](../configure/): environment variables and limits
-- [Integrate the core library](../integrate/): the Go API behind these tools
+- [Install and connect](../install/)
+- [Configure the server](../configure/)
+- [Integrate the core library](../integrate/)
