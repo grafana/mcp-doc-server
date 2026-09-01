@@ -29,7 +29,7 @@ mcp-grafana (github.com/grafana/mcp-grafana)
 ## Integration pattern
 
 mcp-grafana uses its own `MustTool` helper which generates JSON schemas from Go
-struct tags — different from the raw `mcp-go` API that the standalone server uses:
+struct tags: different from the raw `mcp-go` API that the standalone server uses:
 
 ```go
 type SearchDocsParams struct {
@@ -75,7 +75,7 @@ triggers the load.
 Failures are not cached: a cancelled or timed-out first request must not poison
 later ones. Concurrent first loads share one fetch (`singleflight`). The fetch is
 detached from the caller's cancellation (`context.WithoutCancel`) and bounded by
-its own 60s timeout. A one-shot `sync.Once` is deliberately not used — it would
+its own 60s timeout. A one-shot `sync.Once` is deliberately not used: it would
 store the first error forever.
 
 The Grafana MCP server starts fast. It doesn't block on index loading at
@@ -133,7 +133,7 @@ srv.AddTool(s.searchDocsTool(), s.handleSearchDocs)
 mcp-grafana has its own `MustTool` pattern that handles schema generation,
 type-safe params, and error wrapping consistently across all of its tool
 categories. Importing the raw adapter would introduce a second registration
-style — and would register four tools instead of the two this host chose.
+style, and would register four tools instead of the two this host chose.
 
 Instead, mcp-grafana imports only `pkg/grafanadocs` (the core) and writes
 thin `MustTool` wrappers that follow its own conventions.
