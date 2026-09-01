@@ -15,7 +15,7 @@ gcx (github.com/grafana/gcx)
     └── links.go     → gcx-local internal/docs registry (command: list-links)
 ```
 
-gcx imports **only the core** (`pkg/grafanadocs`) — not the MCP or CLI adapter.
+gcx imports **only the core** (`pkg/grafanadocs`), not the MCP or CLI adapter.
 It writes its own command layer using gcx conventions: `output.Options`, styled
 tables, agent annotations, and the standard opts pattern.
 
@@ -61,7 +61,7 @@ a `pkg/grafanadocs` call.
 
 JSON is an envelope, not a bare array. A capped page carries `list_meta`;
 absence of `list_meta` means the page is complete. gcx requests `limit+1` and
-uses `TruncatePagedList` so truncation is proven by a spare row — `Search()`
+uses `TruncatePagedList` so truncation is proven by a spare row: `Search()`
 returns no total. `--limit` 0 or negative uses the default of 5 (the library
 treats `<=0` as 5, so `BindListLimit`'s "0 means all" would be a lie).
 
@@ -120,7 +120,7 @@ consistent flags, consistent output handling, agent-mode awareness.
 
 ## Index lifecycle
 
-The index is loaded lazily — only `search` and `list-products` need it.
+The index is loaded lazily: only `search` and `list-products` need it.
 `get` and `outline` only call `FetchDoc`, so they work without loading
 the full index (faster startup, works even if the index is temporarily
 unreachable). `list-links` is offline and never touches the network.

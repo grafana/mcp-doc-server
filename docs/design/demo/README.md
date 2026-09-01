@@ -1,7 +1,7 @@
 # mcp-doc-server Demo
 
 A docs-retrieval MCP server that gives AI agents version-aware access to Grafana Labs
-product documentation — no embeddings, no server-side LLM, just fast deterministic
+product documentation: no embeddings, no server-side LLM, just fast deterministic
 search and bounded retrieval from the official index.
 
 ## What it does
@@ -54,11 +54,13 @@ go build -o bin/docs ./cmd/docs/
 ### Run the standalone CLI
 
 ```bash
-./bin/docs search "rate limiting"
-./bin/docs get https://grafana.com/docs/tempo/latest/
-./bin/docs outline https://grafana.com/docs/loki/latest/
+./bin/docs search "traceql query" --product tempo
+./bin/docs outline https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries/
+./bin/docs get https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries/ --section "Comparison operators"
 ./bin/docs products
 ```
+
+The standalone server exposes four tools (`search_docs`, `get_doc`, `get_doc_outline`, `list_products`). Downstream hosts fold or rename that surface: [gcx](gcx-integration.md) mounts `gcx docs` (`list-products`, `list-links`); [mcp-grafana](mcp-grafana-integration.md) registers `search_docs` and `get_doc` only.
 
 ## Demo contents
 
@@ -85,16 +87,16 @@ Consumers import the core only:
 ```
 
 Both mcp-grafana and gcx import `pkg/grafanadocs` directly and write their own
-idiomatic wrappers — they never import the MCP or CLI adapters.
+idiomatic wrappers: they never import the MCP or CLI adapters.
 
 ## Key design choices
 
-- **No embeddings, no server-side LLM** — TF-IDF with word-boundary matching,
+- **No embeddings, no server-side LLM**: TF-IDF with word-boundary matching,
   title weighting, and phrase bonuses. Cheap, fast, deterministic.
-- **Bounded by default** — `get_doc` returns a slice, not the whole page.
+- **Bounded by default**: `get_doc` returns a slice, not the whole page.
   Agents use `get_doc_outline` first to target exactly what they need.
-- **Allowlisted fetches** — only `https://grafana.com/docs/` URLs pass the
+- **Allowlisted fetches**: only `https://grafana.com/docs/` URLs pass the
   allowlist. No arbitrary URL fetching.
-- **Rate-limited** — 5 concurrent fetches max, 200ms minimum gap.
-- **Clean markdown** — frontmatter, shortcodes, HTML comments stripped;
+- **Rate-limited**: 5 concurrent fetches max, 200ms minimum gap.
+- **Clean markdown**: frontmatter, shortcodes, HTML comments stripped;
   code blocks preserved intact.

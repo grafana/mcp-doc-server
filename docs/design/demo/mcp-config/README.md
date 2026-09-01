@@ -57,17 +57,17 @@ The agent should call `search_docs` and return results with titles, URLs, and pr
 ## Example session
 
 ```
-User: How do I configure rate limiting in Tempo?
+User: How do I construct a TraceQL query?
 
-Agent: [calls search_docs("rate limiting", product="tempo")]
-       → finds "Global rate limiting" page
+Agent: [calls search_docs(query="traceql query", product="tempo")]
+       → finds Construct a TraceQL query
 
-Agent: [calls get_doc_outline(url)]
-       → sees headings: "Override strategy", "Configuration", "Examples"
+Agent: [calls get_doc_outline(url="https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries/")]
+       → sees headings including "Comparison operators"
 
-Agent: [calls get_doc(url, section="Configuration")]
-       → retrieves just the config section (bounded, clean markdown)
+Agent: [calls get_doc(url, section="Comparison operators")]
+       → retrieves just that section (bounded, clean markdown)
 
-Agent: Here's how to configure rate limiting in Tempo:
+Agent: Here's how comparison operators work in TraceQL:
        [answers with citation to source URL]
 ```
